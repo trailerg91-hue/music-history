@@ -46,7 +46,7 @@ function MainContent() {
   }, [user]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/history')
+    fetch('https://music-history-backend-6ojw.onrender.com')
       .then(res => res.json())
       .then(data => setHistoryData(data))
       .catch(err => console.error("ეპოქების ბაზის შეცდომა:", err));
