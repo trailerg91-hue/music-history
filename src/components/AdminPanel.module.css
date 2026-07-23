@@ -1,0 +1,286 @@
+.adminContainer {
+  padding: 100px 40px 40px;
+  background-color: #0a0a0a;
+  min-height: 100vh;
+  color: #fff;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.adminHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #222;
+  padding-bottom: 20px;
+}
+
+.adminHeader h2 {
+  color: #f59e0b;
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.backBtn {
+  background: transparent;
+  border: 1px solid #f59e0b;
+  color: #f59e0b;
+  padding: 10px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.backBtn:hover {
+  background: #f59e0b;
+  color: #111;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+.tabsMenu {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.tabBtn {
+  background: #141414;
+  border: 1px solid #222;
+  color: #888;
+  padding: 10px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.tabBtn:hover {
+  color: #fff;
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+  transform: translateY(-2px);
+}
+
+.activeTab {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.tableWrapper {
+  background: #141414;
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid #222;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.3s ease;
+  overflow-x: auto;
+}
+
+.tableWrapper:hover {
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.tableWrapper h3 {
+  margin-top: 0;
+  color: #e5e7eb;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.userTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.userTable th, .userTable td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #222;
+}
+
+.userTable th {
+  color: #888;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.userTable td {
+  font-size: 1rem;
+  color: #e5e7eb;
+}
+
+.userTable tbody tr {
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.userTable tbody tr:hover {
+  background-color: rgba(245, 158, 11, 0.08);
+}
+
+.deleteBtn {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.deleteBtn:hover {
+  background: #ef4444;
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.formCard {
+  background: #141414;
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid #222;
+  transition: border-color 0.3s ease;
+}
+
+.formCard:hover {
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.addForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.addForm input, .addForm textarea, .selectInput {
+  background: #0a0a0a;
+  border: 1px solid #222;
+  padding: 12px 15px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.addForm input:hover, .addForm textarea:hover, .selectInput:hover {
+  border-color: #444;
+}
+
+.addForm input:focus, .addForm textarea:focus, .selectInput:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.addForm textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* მედია ატვირთვის/ლინკის სტილები */
+.mediaContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #0d0d0d;
+  border: 1px solid #222;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.mediaLabel {
+  font-size: 0.9rem;
+  color: #d1d5db;
+  font-weight: 500;
+}
+
+.mediaToggleRow {
+  display: flex;
+  gap: 8px;
+}
+
+.toggleBtn {
+  flex: 1;
+  background: #141414;
+  border: 1px solid #333;
+  color: #888;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggleBtn:hover {
+  background: #1f1f1f;
+  color: #fff;
+}
+
+.activeToggle {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #f59e0b !important;
+  border-color: #f59e0b !important;
+  font-weight: 600;
+}
+
+.hiddenFile {
+  display: none;
+}
+
+.customFileLabel {
+  display: block;
+  background: #0a0a0a;
+  border: 1px dashed rgba(245, 158, 11, 0.4);
+  color: #e5e7eb;
+  padding: 12px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.customFileLabel:hover {
+  background: rgba(245, 158, 11, 0.05);
+  border-color: #f59e0b;
+}
+
+.textInput {
+  background: #0a0a0a;
+  border: 1px solid #222;
+  padding: 12px 15px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.textInput:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.submitBtn {
+  background: #f59e0b;
+  color: #111;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.submitBtn:hover {
+  background: #fbbf24;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}

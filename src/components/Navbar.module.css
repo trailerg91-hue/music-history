@@ -1,0 +1,276 @@
+.nav {
+  width: 100%;
+  background-color: #111111;
+  border-bottom: 1px solid #1f1f1f;
+  padding: 15px 30px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+.logo {
+  color: #f59e0b;
+  font-size: 1.2rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.menu {
+  display: flex;
+  gap: 25px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  justify-self: center;
+  align-items: center;
+}
+
+.link {
+  color: #a3a3a3;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-block;
+  transition: color 0.2s ease;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.link:hover {
+  color: #f59e0b;
+}
+
+.adminLink {
+  color: #f59e0b;
+  font-weight: bold;
+  text-decoration: none;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-block;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.adminLink:hover {
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+  transform: translateY(-1px);
+}
+
+.authButtons {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.userInfoContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.userNameText {
+  color: #f59e0b;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.authLink {
+  padding: 6px 16px;
+  border: 1px solid #f59e0b;
+  color: #f59e0b;
+  background: transparent;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.authLink:hover {
+  background-color: #f59e0b;
+  color: #111111;
+}
+
+/* --- მობილური ვერსია და სლაიდერ მენიუ --- */
+
+.hamburgerBtn {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 28px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  justify-self: end;
+  z-index: 1100;
+}
+
+.bar {
+  width: 100%;
+  height: 2.5px;
+  background-color: #f59e0b;
+  border-radius: 2px;
+  transition: all 0.3s ease-in-out;
+}
+
+.drawerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease, pointer-events 0.3s ease;
+  z-index: 1050;
+}
+
+.overlayActive {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobileDrawer {
+  position: fixed;
+  top: 0;
+  right: -300px;
+  width: 280px;
+  height: 100vh;
+  background-color: #141414;
+  border-left: 1px solid #1f1f1f;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  padding: 25px;
+  box-sizing: border-box;
+  transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1100;
+}
+
+.drawerActive {
+  right: 0;
+}
+
+.drawerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1f1f1f;
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+}
+
+.drawerTitle {
+  color: #f59e0b;
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.closeBtn:hover {
+  color: #fff;
+}
+
+.drawerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.drawerMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.drawerLink {
+  color: #a3a3a3;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #0f0f0f;
+  border: 1px solid #1f1f1f;
+  display: block;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.drawerLink:hover {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.drawerAuth {
+  margin-top: auto;
+  border-top: 1px solid #1f1f1f;
+  padding-top: 20px;
+}
+
+.drawerUserSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.drawerUserName {
+  color: #f59e0b;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .nav {
+    padding: 15px 20px;
+    grid-template-columns: 1fr auto;
+  }
+
+  .menu, .authButtons {
+    display: none;
+  }
+
+  .hamburgerBtn {
+    display: flex;
+  }
+}
