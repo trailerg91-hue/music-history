@@ -23,7 +23,7 @@ export function GeorgianFolk({ onSelectRegion }) {
   const [regions, setRegions] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/folklore')
+    fetch('https://music-history-backend-6ojw.onrender.com/api/instruments')
       .then(res => res.json())
       .then(data => setRegions(data))
       .catch(err => console.error("ბაზის შეცდომა:", err));

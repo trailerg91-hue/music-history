@@ -23,7 +23,7 @@ export default function Instruments() {
   }, [favorites]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/instruments')
+    fetch('https://music-history-backend-6ojw.onrender.com/api/instruments')
       .then((res) => res.json())
       .then((data) => {
         setInstruments(data);
