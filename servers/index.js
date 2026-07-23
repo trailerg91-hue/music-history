@@ -50,7 +50,8 @@ app.post('/api/folklore', upload.single('image'), async (req, res) => {
   try {
     const itemData = { ...req.body };
     if (req.file) {
-      itemData.imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      itemData.imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
     }
     const newItem = new Folklore(itemData);
     const savedItem = await newItem.save();
@@ -82,13 +83,14 @@ app.get('/api/history', async (req, res) => {
 app.post('/api/history', upload.fields([{ name: 'audio', maxCount: 1 }, { name: 'image', maxCount: 1 }]), async (req, res) => {
   try {
     const itemData = { ...req.body };
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
     
     if (req.files) {
       if (req.files['audio']) {
-        itemData.audioUrl = `http://localhost:5000/uploads/${req.files['audio'][0].filename}`;
+        itemData.audioUrl = `${baseUrl}/uploads/${req.files['audio'][0].filename}`;
       }
       if (req.files['image']) {
-        itemData.imageUrl = `http://localhost:5000/uploads/${req.files['image'][0].filename}`;
+        itemData.imageUrl = `${baseUrl}/uploads/${req.files['image'][0].filename}`;
       }
     }
 
@@ -130,7 +132,8 @@ app.post('/api/instruments', upload.single('image'), async (req, res) => {
   try {
     const itemData = { ...req.body };
     if (req.file) {
-      itemData.imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      itemData.imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
     }
     const newItem = new Instrument(itemData);
     const savedItem = await newItem.save();
@@ -149,4 +152,5 @@ app.delete('/api/instruments/:id', async (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log('სერვერი მუშაობს პორტზე 5000'));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`სერვერი მუშაობს პორტზე ${PORT}`));
