@@ -25,7 +25,6 @@ export function GeorgianFolk({ onSelectRegion }) {
   const handleToggleShow = () => {
     if (showAll) {
       setShowAll(false);
-      // ვკეცავთ და ავდივართ სექციის თავში
       sectionRef.current?.scrollIntoView({ behavior: 'smooth' });
     } else {
       setShowAll(true);
@@ -39,7 +38,6 @@ export function GeorgianFolk({ onSelectRegion }) {
         <p className={styles.subText}>მუსიკალური მოგზაურობა საქართველოს რეგიონებში.</p>
       </div>
 
-      {/* მოვხსენით layout, რომ ბარათები არ გაიწელოს */}
       <div className={styles.grid}>
         <AnimatePresence>
           {displayedRegions.length > 0 ? (
@@ -52,6 +50,17 @@ export function GeorgianFolk({ onSelectRegion }) {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
+                {/* რეგიონის ფოტო ბარათზე თავიდანვე */}
+                {region.imageUrl && (
+                  <div style={{ width: '100%', height: '180px', overflow: 'hidden', borderRadius: '8px 8px 0 0', marginBottom: '12px' }}>
+                    <img 
+                      src={region.imageUrl} 
+                      alt={region.title || region.name} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                  </div>
+                )}
+
                 <p className={styles.cardTag}>{region.tag || 'კუთხე'}</p>
                 <h3 className={styles.cardTitle}>{region.title || region.name}</h3>
                 <p className={styles.cardDescription}>{region.description || region.text}</p>
