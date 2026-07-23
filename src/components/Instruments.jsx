@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import './Instruments.css';
 
 export default function Instruments() {
@@ -7,6 +7,8 @@ export default function Instruments() {
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
+  const sectionRef = useRef(null); // რეფი სექციის სათავისთვის
 
   // ფავორიტების ინიციალიზაცია localStorage-იდან
   const [favorites, setFavorites] = useState(() => {
@@ -16,7 +18,6 @@ export default function Instruments() {
 
   useEffect(() => {
     localStorage.setItem('favoriteInstruments', JSON.stringify(favorites));
-    // თუ ყველა ფავორიტი წაიშალა, ავტომატურად ვთიშავთ ფავორიტების ფილტრს
     if (favorites.length === 0) {
       setShowFavoritesOnly(false);
     }
@@ -39,6 +40,7 @@ export default function Instruments() {
 
   const handleCheckboxChange = (type) => {
     setShowFavoritesOnly(false);
+    setShowAll(false);
     if (selectedTypes.includes(type)) {
       setSelectedTypes(selectedTypes.filter(t => t !== type));
     } else {
@@ -49,12 +51,14 @@ export default function Instruments() {
   const handleSelectAll = () => {
     setSelectedTypes([]);
     setShowFavoritesOnly(false);
+    setShowAll(false);
   };
 
   const handleToggleFavoritesFilter = () => {
     if (favorites.length === 0) return;
     setShowFavoritesOnly(prev => !prev);
     setSelectedTypes([]);
+    setShowAll(false);
   };
 
   const toggleFavorite = (itemId, e) => {
@@ -81,6 +85,18 @@ export default function Instruments() {
     return true;
   });
 
+  const displayedInstruments = showAll ? filteredInstruments : filteredInstruments.slice(0, 3);
+
+  const handleToggleShow = () => {
+    if (showAll) {
+      setShowAll(false);
+      // ვკეცავთ და ავდივართ სექციის თავში
+      sectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      setShowAll(true);
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-10 text-white">იტვირთება საკრავები...</div>;
   }
@@ -88,7 +104,7 @@ export default function Instruments() {
   const isFavoritesDisabled = favorites.length === 0;
 
   return (
-    <div className="instruments-wrapper">
+    <div ref={sectionRef} className="instruments-wrapper">
       <motion.h2 
         className="instruments-section-title"
         initial={{ opacity: 0, y: -15 }}
@@ -176,53 +192,79 @@ export default function Instruments() {
       </div>
       
       <div className="instruments-grid">
-        {filteredInstruments.length > 0 ? (
-          filteredInstruments.map((item, index) => {
-            const itemId = item._id || item.name;
-            const isFavorited = favorites.includes(itemId);
+        <AnimatePresence>
+          {filteredInstruments.length > 0 ? (
+            displayedInstruments.map((item, index) => {
+              const itemId = item._id || item.name;
+              const isFavorited = favorites.includes(itemId);
 
-            return (
-              <motion.div 
-                key={itemId} 
-                className="instrument-card"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                viewport={{ once: true }}
-              >
-                {/* ფავორიტის გულის ღილაკი */}
-                <button 
-                  className={`favorite-btn ${isFavorited ? 'favorited' : ''}`}
-                  onClick={(e) => toggleFavorite(itemId, e)}
-                  title={isFavorited ? "ფავორიტებიდან ამოშლა" : "ფავორიტებში დამატება"}
+              return (
+                <motion.div 
+                  key={itemId} 
+                  className="instrument-card"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
                 >
-                  {isFavorited ? '❤️' : '🤍'}
-                </button>
+                  {/* ფავორიტის გულის ღილაკი */}
+                  <button 
+                    className={`favorite-btn ${isFavorited ? 'favorited' : ''}`}
+                    onClick={(e) => toggleFavorite(itemId, e)}
+                    title={isFavorited ? "ფავორიტებიდან ამოშლა" : "ფავორიტებში დამატება"}
+                  >
+                    {isFavorited ? '❤️' : '🤍'}
+                  </button>
 
-                <div>
-                  {item.imageUrl && (
-                    <div className="instrument-image-container">
-                      <img 
-                        src={item.imageUrl} 
-                        alt={item.name} 
-                        className="instrument-image" 
-                      />
-                    </div>
-                  )}
-                  <h3 className="instrument-name">{item.name}</h3>
-                  <p className="instrument-description">{item.description}</p>
-                </div>
-              </motion.div>
-            );
-          })
-        ) : (
-          <div className="no-results">
-            {showFavoritesOnly 
-              ? 'ფავორიტებში ჯერ არცერთი ინსტრუმენტი არ დაგიმატებია.' 
-              : 'მითითებული კატეგორიის ინსტრუმენტი არ მოიძებნა.'}
-          </div>
-        )}
+                  <div>
+                    {item.imageUrl && (
+                      <div className="instrument-image-container">
+                        <img 
+                          src={item.imageUrl} 
+                          alt={item.name} 
+                          className="instrument-image" 
+                        />
+                      </div>
+                    )}
+                    <h3 className="instrument-name">{item.name}</h3>
+                    <p className="instrument-description">{item.description}</p>
+                  </div>
+                </motion.div>
+              );
+            })
+          ) : (
+            <div className="no-results" style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#aaa', padding: '20px' }}>
+              {showFavoritesOnly 
+                ? 'ფავორიტებში ჯერ არცერთი ინსტრუმენტი არ დაგიმატებია.' 
+                : 'მითითებული კატეგორიის ინსტრუმენტი არ მოიძებნა.'}
+            </div>
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* „მეტის ჩვენება“ ღილაკი საკრავებისთვის */}
+      {filteredInstruments.length > 3 && (
+        <div style={{ textAlign: 'center', marginTop: '30px' }}>
+          <motion.button 
+            whileTap={{ scale: 0.95 }}
+            onClick={handleToggleShow}
+            style={{
+              padding: '12px 28px',
+              backgroundColor: '#d97706',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+              transition: 'background 0.3s ease'
+            }}
+          >
+            {showAll ? 'ნაკლების ჩვენება ▲' : 'მეტის ჩვენება ▼'}
+          </motion.button>
+        </div>
+      )}
     </div>
   );
 }
