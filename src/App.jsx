@@ -13,7 +13,6 @@ import AdminPanel from './components/AdminPanel.jsx';
 
 import styles from './App.module.css';
 
-// შიდა კომპონენტი, რომელსაც წვდომა აქვს useAuth-ზე
 function MainContent() {
   const { user, logout } = useAuth();
   
@@ -30,14 +29,12 @@ function MainContent() {
   const instrumentsRef = useRef(null);
   const epochRef = useRef(null);
 
-  // მიმდინარე გვერდის შენახვა localStorage-ში
   useEffect(() => {
     if (currentPage && currentPage !== 'auth') {
       localStorage.setItem('currentPage', currentPage);
     }
   }, [currentPage]);
 
-  // როდესაც იუზერი გამოვა (user გახდება null), დავბრუნდეთ ლოგინზე და გავასუფთავოთ
   useEffect(() => {
     if (!user) {
       setCurrentPage('auth');
@@ -48,8 +45,17 @@ function MainContent() {
   useEffect(() => {
     fetch('https://music-history-backend-6ojw.onrender.com/api/history')
       .then(res => res.json())
-      .then(data => setHistoryData(data))
-      .catch(err => console.error("ეპოქების ბაზის შეცდომა:", err));
+      .then(data => {
+        if (Array.isArray(data)) {
+          setHistoryData(data);
+        } else {
+          setHistoryData([]);
+        }
+      })
+      .catch(err => {
+        console.error("ეპოქების ბაზის შეცდომა:", err);
+        setHistoryData([]);
+      });
   }, []);
 
   const scrollToSection = (ref) => {
@@ -68,6 +74,9 @@ function MainContent() {
     setCurrentPage('auth');
   };
 
+  // ვამოწმებთ არის თუ არა იუზერი ადმინი (შეცვალე შენი ბაზის ველის მიხედვით: isAdmin ან role === 'admin')
+  const isAdmin = user?.isAdmin || user?.role === 'admin';
+
   return (
     <div className={styles.container}>
       {selectedRegion && <RegionDetail region={selectedRegion} onClose={() => setSelectedRegion(null)} />}
@@ -77,8 +86,21 @@ function MainContent() {
           <Auth setCurrentPage={setCurrentPage} />
         </div>
       ) : currentPage === 'admin' ? (
-        /* ადმინ პანელში ნავბარი აღარ გამოჩნდება */
-        <AdminPanel setCurrentPage={setCurrentPage} />
+        /* მკაცრი შემოწმება: თუ ადმინია - უშვებს, თუ არა - აჩვენებს შეტყობინებას და ღილაკს */
+        isAdmin ? (
+          <AdminPanel setCurrentPage={setCurrentPage} />
+        ) : (
+          <div style={{ textAlign: 'center', marginTop: '100px', color: '#fff', padding: '20px' }}>
+            <h2>წვდომა შეზღუდულია</h2>
+            <p style={{ margin: '15px 0', color: '#aaa' }}>თქვენ არ გაქვთ ადმინისტრატორის უფლებები ამ გვერდზე შესასვლელად.</p>
+            <button 
+              onClick={() => setCurrentPage('main')}
+              style={{ padding: '10px 20px', background: '#d97706', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+            >
+              მთავარ გვერდზე დაბრუნება
+            </button>
+          </div>
+        )
       ) : (
         <>
           <Navbar 
