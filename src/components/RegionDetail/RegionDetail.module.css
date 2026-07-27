@@ -33,7 +33,12 @@
 
 .content { margin-bottom: 20px; color: white; }
 
-/* ეს არის მთავარი ცვლილება ვიდეოსთვის */
+.tag {
+  color: #f59e0b;
+  display: block;
+  margin-bottom: 10px;
+}
+
 .playerWrapper {
   position: relative;
   width: 100%;

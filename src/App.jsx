@@ -1,61 +1,54 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 
-import Navbar from './components/Navbar.jsx';
-import Footer from './components/Footer.jsx';
-import { GeorgianFolk } from './components/GeorgianFolk.jsx';
+import Navbar from './components/Navbar/Navbar.jsx';
+import Footer from './components/Footer/Footer.jsx';
+import { GeorgianFolk } from './components/GeorgianFolk/GeorgianFolk.jsx';
 import { RegionDetail } from './components/RegionDetail/RegionDetail.jsx';
-import { AuthProvider, useAuth } from './components/authContext.jsx';
-import Auth from './components/Auth.jsx';
-import Timeline from './components/Timeline.jsx';
-import Instruments from './components/Instruments.jsx';
-import AdminPanel from './components/AdminPanel.jsx';
-
+import { useAuth } from './components/Auth/authContext.jsx';
+import Auth from './components/Auth/Auth.jsx';
+import Timeline from './components/Timeline/Timeline.jsx';
+import Instruments from './components/Instruments/Instruments.jsx';
+import AdminPanel from './components/AdminPanel/AdminPanel.jsx';
+import { API_BASE } from './api.js';
 import styles from './App.module.css';
 
-function MainContent() {
-  const { user, logout } = useAuth();
-  
+const fadeIn = { initial: { opacity: 0 }, whileInView: { opacity: 1 }, viewport: { once: false } };
+
+export default function App() {
+  const { user, logout, authLoading } = useAuth();
+
   const [currentPage, setCurrentPage] = useState(() => {
-    const savedUser = localStorage.getItem('token') || localStorage.getItem('user');
-    if (!savedUser) return 'auth';
+    if (!(localStorage.getItem('token') || localStorage.getItem('user'))) return 'auth';
     return localStorage.getItem('currentPage') || 'main';
   });
-  
   const [selectedRegion, setSelectedRegion] = useState(null);
   const [historyData, setHistoryData] = useState([]);
-  
+
   const folkRef = useRef(null);
   const instrumentsRef = useRef(null);
   const epochRef = useRef(null);
 
   useEffect(() => {
-    if (currentPage && currentPage !== 'auth') {
-      localStorage.setItem('currentPage', currentPage);
-    }
+    if (currentPage && currentPage !== 'auth') localStorage.setItem('currentPage', currentPage);
   }, [currentPage]);
 
   useEffect(() => {
+    // რეფრეშისას ჯერ authLoading=true — login-ზე არ გადავყავართ
+    if (authLoading) return;
     if (!user) {
       setCurrentPage('auth');
       localStorage.removeItem('currentPage');
+    } else if (currentPage === 'auth') {
+      setCurrentPage(localStorage.getItem('currentPage') || 'main');
     }
-  }, [user]);
+  }, [user, authLoading, currentPage]);
 
   useEffect(() => {
-    fetch('https://music-history-backend-6ojw.onrender.com/api/history')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setHistoryData(data);
-        } else {
-          setHistoryData([]);
-        }
-      })
-      .catch(err => {
-        console.error("ეპოქების ბაზის შეცდომა:", err);
-        setHistoryData([]);
-      });
+    fetch(`${API_BASE}/history`)
+      .then((res) => res.json())
+      .then((data) => setHistoryData(Array.isArray(data) ? data : []))
+      .catch(() => setHistoryData([]));
   }, []);
 
   const scrollToSection = (ref) => {
@@ -65,37 +58,51 @@ function MainContent() {
   };
 
   const handleLogout = () => {
-    if (logout) {
-      logout();
-    }
+    logout?.();
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
     localStorage.removeItem('currentPage');
     setCurrentPage('auth');
   };
 
-  // ვამოწმებთ არის თუ არა იუზერი ადმინი (შეცვალე შენი ბაზის ველის მიხედვით: isAdmin ან role === 'admin')
   const isAdmin = user?.isAdmin || user?.role === 'admin';
+
+  if (authLoading) {
+    return (
+      <div className={styles.container} style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
+        <p style={{ color: '#f59e0b' }}>იტვირთება...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
-      {selectedRegion && <RegionDetail region={selectedRegion} onClose={() => setSelectedRegion(null)} />}
+      {selectedRegion && (
+        <RegionDetail region={selectedRegion} onClose={() => setSelectedRegion(null)} />
+      )}
 
       {currentPage === 'auth' ? (
         <div className={styles.authSection}>
           <Auth setCurrentPage={setCurrentPage} />
         </div>
       ) : currentPage === 'admin' ? (
-        /* მკაცრი შემოწმება: თუ ადმინია - უშვებს, თუ არა - აჩვენებს შეტყობინებას და ღილაკს */
         isAdmin ? (
           <AdminPanel setCurrentPage={setCurrentPage} />
         ) : (
-          <div style={{ textAlign: 'center', marginTop: '100px', color: '#fff', padding: '20px' }}>
+          <div style={{ textAlign: 'center', marginTop: 100, color: '#fff', padding: 20 }}>
             <h2>წვდომა შეზღუდულია</h2>
-            <p style={{ margin: '15px 0', color: '#aaa' }}>თქვენ არ გაქვთ ადმინისტრატორის უფლებები ამ გვერდზე შესასვლელად.</p>
-            <button 
+            <p style={{ margin: '15px 0', color: '#aaa' }}>
+              თქვენ არ გაქვთ ადმინისტრატორის უფლებები ამ გვერდზე შესასვლელად.
+            </p>
+            <button
               onClick={() => setCurrentPage('main')}
-              style={{ padding: '10px 20px', background: '#d97706', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+              style={{
+                padding: '10px 20px',
+                background: '#d97706',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 5,
+                cursor: 'pointer',
+              }}
             >
               მთავარ გვერდზე დაბრუნება
             </button>
@@ -103,40 +110,34 @@ function MainContent() {
         )
       ) : (
         <>
-          <Navbar 
+          <Navbar
             currentPage={currentPage}
-            setCurrentPage={setCurrentPage} 
-            scrollToSection={scrollToSection} 
-            folkRef={folkRef} 
-            worldRef={instrumentsRef} 
-            epochRef={epochRef} 
+            setCurrentPage={setCurrentPage}
+            scrollToSection={scrollToSection}
+            folkRef={folkRef}
+            worldRef={instrumentsRef}
+            epochRef={epochRef}
             user={user}
             handleLogout={handleLogout}
           />
 
           <div className={styles.heroSection}>
-            <div className={styles.heroOverlay}></div>
+            <div className={styles.heroOverlay} />
             <div className={styles.heroTextZone}>
               <h1 className={styles.title}>History of Music</h1>
               <p className={styles.subtitle}>მოგზაურობა ხმებისა და ეპოქების სამყაროში...</p>
             </div>
           </div>
 
-          <div ref={folkRef}>
+          <div ref={folkRef} style={{ position: 'relative' }}>
             <GeorgianFolk onSelectRegion={setSelectedRegion} />
           </div>
 
-          <motion.div 
-            ref={instrumentsRef} 
-            className={styles.section} 
-            initial={{ opacity: 0 }} 
-            whileInView={{ opacity: 1 }} 
-            viewport={{ once: false }}
-          >
+          <motion.div ref={instrumentsRef} className={styles.section} {...fadeIn}>
             <Instruments />
           </motion.div>
-          
-          <motion.div ref={epochRef} className={styles.section} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: false }}>
+
+          <motion.div ref={epochRef} className={styles.section} {...fadeIn}>
             <h2>ეპოქები</h2>
             <Timeline data={historyData} />
           </motion.div>
@@ -147,13 +148,3 @@ function MainContent() {
     </div>
   );
 }
-
-function App() {
-  return (
-    <AuthProvider>
-      <MainContent />
-    </AuthProvider>
-  );
-}
-
-export default App;

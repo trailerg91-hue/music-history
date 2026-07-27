@@ -1,9 +1,15 @@
+import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import instrumentsData from './InstrumentsData.js';
 import Instrument from './models/Instrument.js';
 
-// ზუსტად იგივე Atlas-ის ლინკი ბაზის სახელით
-const dbURI = "mongodb+srv://trailerg91_db_user:rmPJ7B3ZJwcwCoVC@folkdata.c4byu6y.mongodb.net/history_of_music?appName=folkData";
+dotenv.config();
+
+const dbURI = process.env.MONGODB_URI;
+if (!dbURI) {
+  throw new Error('MONGODB_URI is not set');
+}
+
 mongoose.connect(dbURI)
 .then(async () => {
   console.log('MongoDB Atlas-თან კავშირი წარმატებულია!');

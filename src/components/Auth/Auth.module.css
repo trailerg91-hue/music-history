@@ -1,0 +1,280 @@
+.authWrapper {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  background: #ffffff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  box-sizing: border-box;
+  overflow: hidden;
+  column-gap: 0;
+  font-family: 'Fira GO', sans-serif;
+}
+
+.heroPanel {
+  position: relative;
+  height: 100%;
+  min-height: 100%;
+  background: #000;
+  overflow: hidden;
+  border: none;
+  outline: none;
+}
+
+.heroImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 42% center;
+  display: block;
+}
+
+.formPanel {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 28px 28px 48px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: none;
+}
+
+.authForm {
+  background: transparent;
+  padding: 8px 16px 24px;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 12px;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.brandLogo {
+  width: min(410px, 100%);
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+  border-radius: 12px;
+}
+
+.authForm h2 {
+  color: #0a0a0a;
+  text-align: center;
+  margin: -28px 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.input {
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #111111;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+.input:focus {
+  border-color: #f59e0b;
+  background: #ffffff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.passwordField {
+  position: relative;
+  width: 100%;
+}
+
+.passwordField .input {
+  padding-right: 52px;
+}
+
+.eyeBtn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 6px;
+  color: #d97706;
+  opacity: 0.85;
+}
+
+.eyeBtn:hover {
+  opacity: 1;
+  color: #f59e0b;
+}
+
+.errorText {
+  color: #dc2626;
+  font-size: 0.85rem;
+  text-align: center;
+  background: rgba(239, 68, 68, 0.08);
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.hintText {
+  color: #6b7280;
+  font-size: 0.8rem;
+  text-align: center;
+  margin: -8px 0 0;
+  line-height: 1.4;
+}
+
+.infoText {
+  color: #b45309;
+  font-size: 0.9rem;
+  text-align: center;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  margin: 0;
+}
+
+.codeBox {
+  margin: 0;
+  text-align: center;
+  font-size: 1.05rem;
+  color: #111;
+  background: #fffbeb;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: 12px;
+  padding: 12px;
+  letter-spacing: 1px;
+}
+
+.codeBox strong {
+  color: #d97706;
+  font-size: 1.35rem;
+  letter-spacing: 4px;
+}
+
+/* საიტის outline ღილაკი (Navbar / Explore სტილი) */
+.secondaryButton {
+  padding: 12px;
+  background: transparent;
+  border: 1px solid #f59e0b;
+  border-radius: 16px;
+  cursor: pointer;
+  color: #f59e0b;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.secondaryButton:hover {
+  background-color: #f59e0b;
+  color: #0a0a0a;
+}
+
+/* საიტის primary amber */
+.submitButton {
+  padding: 16px;
+  background: #f59e0b;
+  border: 1px solid #f59e0b;
+  border-radius: 16px;
+  cursor: pointer;
+  color: #0a0a0a;
+  font-weight: bold;
+  font-size: 1.05rem;
+  transition: all 0.3s ease;
+  margin-top: 5px;
+}
+
+.submitButton:hover {
+  background: #d97706;
+  border-color: #d97706;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.submitButton:active {
+  transform: translateY(0);
+  background: #b45309;
+  border-color: #b45309;
+}
+
+.toggleText {
+  color: #6b7280;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  transition: color 0.2s ease;
+}
+
+.toggleText:hover {
+  color: #f59e0b;
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.92) translateY(8px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .authWrapper {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    position: fixed;
+  }
+
+  .heroPanel {
+    min-height: 28vh;
+    max-height: 32vh;
+    height: auto;
+  }
+
+  .formPanel {
+    height: auto;
+    overflow: visible;
+    padding: 12px 18px 40px;
+    background: #ffffff;
+  }
+
+  .authForm {
+    margin-top: 0;
+    padding: 8px 8px 32px;
+  }
+
+  .brandLogo {
+    width: min(260px, 70vw);
+  }
+}

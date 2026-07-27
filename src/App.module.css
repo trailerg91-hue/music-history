@@ -4,13 +4,25 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  background-color: #0a0a0a; /* შენი საიტის მუქი ფონი */
+  background-color: #0a0a0a;
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
-* {
-  box-sizing: border-box;
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.3);
+  border-radius: 4px;
 }
+::-webkit-scrollbar-thumb:hover { background: rgba(245, 158, 11, 0.6); }
+
+::selection {
+  background: rgba(245, 158, 11, 0.3);
+  color: #ffffff;
+}
+
+* { box-sizing: border-box; }
 
 .container {
   position: relative;
@@ -25,7 +37,9 @@ html, body {
   position: relative;
   padding: 80px 20px;
   border-top: 1px solid rgba(245, 158, 11, 0.15);
-  background: #0a0a0a;
+  background: rgba(10, 10, 10, 0.92);
+  z-index: 2;
+  box-shadow: inset 0 15px 30px -15px rgba(0, 0, 0, 0.8);
 }
 
 .heroSection {
@@ -38,11 +52,12 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
 }
 
 .heroOverlay {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  inset: 0;
   background: linear-gradient(to bottom, rgba(10, 10, 10, 0.5), #0a0a0a);
   z-index: 1;
 }
@@ -54,54 +69,52 @@ html, body {
   padding: 0 20px;
 }
 
-.title { 
-  font-size: 4.5rem; 
-  font-weight: 900; 
-  color: #ffffff; 
-  margin-bottom: 25px; 
+.title {
+  font-size: 4.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 25px;
   letter-spacing: -1px;
-  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.9); 
+  background: linear-gradient(135deg, #ffffff 30%, #f59e0b 70%, #d97706 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: holographicShift 6s ease infinite;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.9);
 }
 
-.subtitle { 
-  font-size: 1.4rem; 
+@keyframes holographicShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.subtitle {
+  font-size: 1.4rem;
   font-weight: 400;
-  color: #e5e7eb; 
-  max-width: 600px; 
-  margin: 0 auto; 
-  background: rgba(18, 18, 18, 0.6); 
-  backdrop-filter: blur(8px);
-  padding: 12px 28px; 
+  color: #e5e7eb;
+  max-width: 600px;
+  margin: 0 auto;
+  background: rgba(18, 18, 18, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 12px 28px;
   border-radius: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
   display: inline-block;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(245, 158, 11, 0.1);
+  transition: all 0.3s ease;
+}
+
+.subtitle:hover {
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(245, 158, 11, 0.25);
+  transform: translateY(-2px);
 }
 
 .authSection {
-  padding: 120px 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  padding: 0;
   min-height: 100vh;
-}
-
-.notesContainer {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none; z-index: 0; overflow: hidden;
-}
-
-.note {
-  position: absolute;
-  color: rgba(245, 158, 11, 0.12);
-  font-size: 4rem;
-  animation: float linear infinite;
-}
-
-@keyframes float {
-  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+  z-index: 2;
+  position: relative;
 }
