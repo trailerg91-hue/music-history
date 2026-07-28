@@ -8,3 +8,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+
+  # If the service Root Directory is empty (repo root), use these instead:
+  # buildCommand: npm run build:render
+  # startCommand: npm start
+  # (legacy) startCommand: node servers/index.js

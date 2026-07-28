@@ -10,6 +10,7 @@
     "start:backend": "npm run start --prefix backend",
     "seed": "npm run seed --prefix backend",
     "build": "vite build",
+    "build:render": "npm install --prefix backend",
     "lint": "eslint .",
     "preview": "vite preview"
   },
