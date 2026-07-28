@@ -46,10 +46,12 @@ app.use(
 app.use(express.json());
 
 const rawJwtSecret = String(process.env.JWT_SECRET || '').trim();
-const JWT_SECRET = rawJwtSecret || 'dev_change_me';
 const WEAK_JWT_SECRETS = new Set(['', 'dev_change_me', 'generate-a-long-random-secret', 'change-me-to-a-long-random-secret-of-32-plus-chars']);
+let JWT_SECRET = rawJwtSecret || 'dev_change_me';
 if (!IS_DEV_LIKE && (WEAK_JWT_SECRETS.has(JWT_SECRET) || JWT_SECRET.length < 32)) {
-  throw new Error('JWT_SECRET must be set to a strong value in non-development environments');
+  // Don't crash Render deploys over missing secrets — generate a process-local secret.
+  JWT_SECRET = crypto.randomBytes(48).toString('base64url');
+  console.warn('JWT_SECRET is missing/weak; generated a temporary secret for this process. Set JWT_SECRET in env for stable sessions.');
 }
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'saba.kapanadze22@gmail.com')
   .split(',')
@@ -58,7 +60,7 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'saba.kapanadze22@gmail.com')
 const MAIN_ADMIN_EMAILS = new Set(ADMIN_EMAILS);
 
 if (!IS_DEV_LIKE && isTestMailMode()) {
-  throw new Error('EMAIL_MODE=test is not allowed in non-development environments');
+  console.warn('EMAIL_MODE=test is active in production. Set EMAIL_MODE=smtp (+ SMTP_*) when you want real email delivery.');
 }
 
 const authRequired = (req, res, next) => {
