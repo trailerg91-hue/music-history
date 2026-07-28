@@ -1,20 +1,39 @@
 const SYMBOL_RE = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/;
 const DIGIT_RE = /\d/;
 
-export const PASSWORD_HINT =
-  'პაროლი: 6–10 სიმბოლო, მინიმუმ 1 ციფრი და 1 სიმბოლო (!@#$)';
+const text = {
+  ka: {
+    hint: 'პაროლი: 6-10 სიმბოლო, მინიმუმ 1 ციფრი და 1 სიმბოლო (!@#$)',
+    length: 'პაროლი უნდა იყოს 6-დან 10 სიმბოლომდე',
+    digit: 'პაროლში უნდა იყოს მინიმუმ 1 ციფრი',
+    symbol: 'პაროლში უნდა იყოს მინიმუმ 1 სიმბოლო (!@#$...)',
+  },
+  en: {
+    hint: 'Password: 6-10 characters, at least 1 digit and 1 symbol (!@#$)',
+    length: 'Password must be between 6 and 10 characters',
+    digit: 'Password must contain at least 1 digit',
+    symbol: 'Password must contain at least 1 symbol (!@#$...)',
+  },
+};
 
-export function validatePasswordClient(password) {
+const copy = (lang = 'ka') => (lang === 'en' ? text.en : text.ka);
+
+export function getPasswordHint(lang = 'ka') {
+  return copy(lang).hint;
+}
+
+export function validatePasswordClient(password, lang = 'ka') {
   const value = String(password || '');
+  const t = copy(lang);
 
   if (value.length < 6 || value.length > 10) {
-    return 'პაროლი უნდა იყოს 6-დან 10 სიმბოლომდე';
+    return t.length;
   }
   if (!DIGIT_RE.test(value)) {
-    return 'პაროლში უნდა იყოს მინიმუმ 1 ციფრი';
+    return t.digit;
   }
   if (!SYMBOL_RE.test(value)) {
-    return 'პაროლში უნდა იყოს მინიმუმ 1 სიმბოლო (!@#$...)';
+    return t.symbol;
   }
   return null;
 }

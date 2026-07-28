@@ -1,212 +1,56 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE } from '../../api.js';
+import InstrumentDetail from './InstrumentDetail.jsx';
+import { useLanguage } from '../../i18n/LanguageContext.jsx';
+import { pickLocalized } from '../../i18n/localize.js';
 import './Instruments.css';
 
-const cardMotion = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
-  transition: { duration: 0.3, ease: 'easeOut' },
-};
-
-const chipMotion = { whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 } };
+const cardMotion = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -12 }, transition: { duration: 0.3, ease: 'easeOut' } };
+const idOf = (item) => item._id || item.id || pickLocalized(item.name, 'ka');
 
 export default function Instruments() {
+  const { t, lang } = useLanguage();
   const [instruments, setInstruments] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [selected, setSelected] = useState(null);
   const sectionRef = useRef(null);
+  const [favorites, setFavorites] = useState(() => { try { return JSON.parse(localStorage.getItem('favoriteInstruments') || '[]'); } catch { return []; } });
 
-  const [favorites, setFavorites] = useState(() => {
-    const saved = localStorage.getItem('favoriteInstruments');
-    return saved ? JSON.parse(saved) : [];
-  });
+  useEffect(() => { localStorage.setItem('favoriteInstruments', JSON.stringify(favorites)); if (!favorites.length) setShowFavoritesOnly(false); }, [favorites]);
+  useEffect(() => { fetch(`${API_BASE}/instruments`).then((r) => r.json()).then((d) => { setInstruments(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false)); }, []);
 
-  useEffect(() => {
-    localStorage.setItem('favoriteInstruments', JSON.stringify(favorites));
-    if (!favorites.length) setShowFavoritesOnly(false);
-  }, [favorites]);
-
-  useEffect(() => {
-    fetch(`${API_BASE}/instruments`)
-      .then((res) => res.json())
-      .then((data) => {
-        setInstruments(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
-
-  const uniqueTypes = [...new Set(instruments.map((i) => i.type).filter(Boolean))];
-  const resetView = () => setShowAll(false);
-
-  const handleCheckboxChange = (type) => {
-    setShowFavoritesOnly(false);
-    resetView();
-    setSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    );
-  };
-
-  const handleSelectAll = () => {
-    setSelectedTypes([]);
-    setShowFavoritesOnly(false);
-    resetView();
-  };
-
-  const handleToggleFavoritesFilter = () => {
-    if (!favorites.length) return;
-    setShowFavoritesOnly((v) => !v);
-    setSelectedTypes([]);
-    resetView();
-  };
-
-  const toggleFavorite = (id, e) => {
-    e.stopPropagation();
-    setFavorites((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  };
-
+  const types = [...new Set(instruments.map((i) => pickLocalized(i.type, lang)).filter(Boolean))];
   const filtered = instruments.filter((item) => {
-    const id = item._id || item.name;
+    const id = idOf(item);
+    const type = pickLocalized(item.type, lang);
     if (showFavoritesOnly) return favorites.includes(id);
-    if (selectedTypes.length) return selectedTypes.includes(item.type);
+    if (selectedTypes.length) return selectedTypes.includes(type);
     return true;
   });
+  const displayed = showAll ? filtered : filtered.slice(0, 6);
+  const selectedId = selected ? idOf(selected) : null;
 
-  const displayed = showAll ? filtered : filtered.slice(0, 3);
-
-  const toggleShow = () => {
-    if (showAll) {
-      setShowAll(false);
-      sectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-    } else setShowAll(true);
-  };
-
-  if (loading) return <div className="instruments-loading">იტვირთება საკრავები...</div>;
-
-  const favDisabled = !favorites.length;
-  const allActive = !showFavoritesOnly && !selectedTypes.length;
+  if (loading) return <div className="instruments-loading">{t.instruments.loading}</div>;
 
   return (
     <div ref={sectionRef} className="instruments-wrapper">
-      <motion.h2
-        className="instruments-section-title"
-        initial={{ opacity: 0, y: -15 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        viewport={{ once: true }}
-      >
-        საკრავები
-      </motion.h2>
-
-      <div className="filters-wrapper">
-        <motion.h3
-          className="filters-title"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          viewport={{ once: true }}
-        >
-          ფილტრაცია ტიპის მიხედვით
-        </motion.h3>
-
-        <motion.div
-          className="filters-container"
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          viewport={{ once: true }}
-        >
-          <motion.label className={`filter-label ${allActive ? 'active' : ''}`} {...chipMotion}>
-            <input
-              type="checkbox"
-              className="filter-checkbox"
-              checked={allActive}
-              onChange={handleSelectAll}
-            />
-            <span>ყველა</span>
-          </motion.label>
-
-          {uniqueTypes.map((type) => {
-            const active = !showFavoritesOnly && selectedTypes.includes(type);
-            return (
-              <motion.label key={type} className={`filter-label ${active ? 'active' : ''}`} {...chipMotion}>
-                <input
-                  type="checkbox"
-                  className="filter-checkbox"
-                  checked={active}
-                  onChange={() => handleCheckboxChange(type)}
-                />
-                <span>{type}</span>
-              </motion.label>
-            );
-          })}
-
-          <motion.label
-            className={`filter-label ${showFavoritesOnly ? 'active' : ''}`}
-            whileHover={!favDisabled ? { scale: 1.05 } : {}}
-            whileTap={!favDisabled ? { scale: 0.95 } : {}}
-            style={{ opacity: favDisabled ? 0.4 : 1, cursor: favDisabled ? 'not-allowed' : 'pointer' }}
-          >
-            <input
-              type="checkbox"
-              className="filter-checkbox"
-              checked={showFavoritesOnly}
-              disabled={favDisabled}
-              onChange={handleToggleFavoritesFilter}
-            />
-            <span>❤️ ფავორიტები</span>
-          </motion.label>
-        </motion.div>
+      <div className="instruments-hero">
+        <motion.h2 className="instruments-section-title" initial={{ opacity: 0, y: -12 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }}>{t.instruments.title}</motion.h2>
+        <p className="instruments-subtitle">{t.instruments.subtitle}</p>
+        <p className="instruments-hint"><span className="instruments-hint-dot" aria-hidden="true" />{t.instruments.hint}</p>
       </div>
-
-      <div className="instruments-grid">
-        <AnimatePresence>
-          {filtered.length ? (
-            displayed.map((item) => {
-              const id = item._id || item.name;
-              const favorited = favorites.includes(id);
-              return (
-                <motion.div key={id} className="instrument-card" {...cardMotion}>
-                  <button
-                    className={`favorite-btn ${favorited ? 'favorited' : ''}`}
-                    onClick={(e) => toggleFavorite(id, e)}
-                    title={favorited ? 'ფავორიტებიდან ამოშლა' : 'ფავორიტებში დამატება'}
-                  >
-                    {favorited ? '❤️' : '🤍'}
-                  </button>
-                  <div>
-                    {item.imageUrl && (
-                      <div className="instrument-image-container">
-                        <img src={item.imageUrl} alt={item.name} className="instrument-image" />
-                      </div>
-                    )}
-                    <h3 className="instrument-name">{item.name}</h3>
-                    <p className="instrument-description">{item.description}</p>
-                  </div>
-                </motion.div>
-              );
-            })
-          ) : (
-            <div className="no-results">
-              {showFavoritesOnly
-                ? 'ფავორიტებში ჯერ არცერთი ინსტრუმენტი არ დაგიმატებია.'
-                : 'მითითებული კატეგორიის ინსტრუმენტი არ მოიძებნა.'}
-            </div>
-          )}
-        </AnimatePresence>
+      <div className="filters-row" role="toolbar" aria-label={t.instruments.title}>
+        <button type="button" className={`filter-chip ${!showFavoritesOnly && !selectedTypes.length ? 'active' : ''}`} onClick={() => { setSelectedTypes([]); setShowFavoritesOnly(false); setShowAll(false); }}>{t.instruments.all}</button>
+        {types.map((type) => <button key={type} type="button" className={`filter-chip ${!showFavoritesOnly && selectedTypes.includes(type) ? 'active' : ''}`} onClick={() => { setShowFavoritesOnly(false); setShowAll(false); setSelectedTypes((prev) => prev.includes(type) ? prev.filter((t2) => t2 !== type) : [...prev, type]); }}>{type}</button>)}
+        <button type="button" className={`filter-chip filter-chip-fav ${showFavoritesOnly ? 'active' : ''}`} disabled={!favorites.length} title={!favorites.length ? t.instruments.favoritesHint : t.instruments.favoritesOnly} onClick={() => { if (!favorites.length) return; setShowFavoritesOnly((v) => !v); setSelectedTypes([]); setShowAll(false); }}>♥ {t.instruments.favorites}</button>
       </div>
-
-      {filtered.length > 3 && (
-        <div className="show-more-wrap">
-          <motion.button whileTap={{ scale: 0.95 }} onClick={toggleShow} className="show-more-btn">
-            {showAll ? 'ნაკლების ჩვენება ▲' : 'მეტის ჩვენება ▼'}
-          </motion.button>
-        </div>
-      )}
+      <div className="instruments-grid"><AnimatePresence>{filtered.length ? displayed.map((item) => { const id = idOf(item); const favorited = favorites.includes(id); return <motion.div key={id} className="instrument-card" {...cardMotion} role="button" tabIndex={0} onClick={() => setSelected(item)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(item); } }}><button type="button" className={`favorite-btn ${favorited ? 'favorited' : ''}`} onClick={(e) => { e.stopPropagation(); setFavorites((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]); }} title={favorited ? t.instruments.removeFavorite : t.instruments.addFavorite}>{favorited ? '♥' : '♡'}</button><div className="instrument-image-container">{item.imageUrl ? <img src={item.imageUrl} alt="" className="instrument-image" /> : <span className="instrument-image-fallback">♪</span>}<div className="instrument-image-shade" /></div><div className="instrument-meta">{pickLocalized(item.type, lang) ? <span className="instrument-type">{pickLocalized(item.type, lang)}</span> : null}<h3 className="instrument-name">{pickLocalized(item.name, lang)}</h3></div></motion.div>; }) : <div className="no-results">{showFavoritesOnly ? t.instruments.noFavoritesYet : t.instruments.noCategoryResults}</div>}</AnimatePresence></div>
+      {filtered.length > 6 && <div className="show-more-wrap"><motion.button type="button" whileTap={{ scale: 0.97 }} className="show-more-btn" onClick={() => { if (showAll) { setShowAll(false); sectionRef.current?.scrollIntoView({ behavior: 'smooth' }); } else setShowAll(true); }}>{showAll ? t.common.showLess : t.common.showMore}</motion.button></div>}
+      {selected && <InstrumentDetail instrument={selected} favorited={favorites.includes(selectedId)} onToggleFavorite={() => setFavorites((prev) => prev.includes(selectedId) ? prev.filter((x) => x !== selectedId) : [...prev, selectedId])} onClose={() => setSelected(null)} />}
     </div>
   );
 }

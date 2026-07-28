@@ -2,18 +2,32 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../Auth/authContext.jsx';
 import { ADMIN_USERS_API, API_BASE } from '../../api.js';
+import { useLanguage } from '../../i18n/LanguageContext.jsx';
+import { pickLocalized, withLangHeader } from '../../i18n/localize.js';
 import styles from './AdminPanel.module.css';
 
 const EPOCHS_API = `${API_BASE}/history`;
 const INSTRUMENTS_API = `${API_BASE}/instruments`;
 const FOLK_API = `${API_BASE}/folklore`;
+const TRANSLATION_STATUS_API = `${API_BASE}/admin/translation-status`;
 
 const emptyEpoch = {
-  era: '',
-  yearRange: '',
-  description: '',
-  countryName: '',
-  countryDescription: '',
+  eraKa: '',
+  eraEn: '',
+  yearRangeKa: '',
+  yearRangeEn: '',
+  descriptionKa: '',
+  descriptionEn: '',
+  countryNameKa: '',
+  countryNameEn: '',
+  countryDescriptionKa: '',
+  countryDescriptionEn: '',
+  celebrationTextKa: '',
+  celebrationTextEn: '',
+  warTextKa: '',
+  warTextEn: '',
+  mourningTextKa: '',
+  mourningTextEn: '',
   imageMode: 'file',
   imageFile: null,
   imageUrl: '',
@@ -23,11 +37,15 @@ const emptyEpoch = {
 };
 
 const emptyInstrument = {
-  name: '',
+  nameKa: '',
+  nameEn: '',
   category: 'string',
-  type: 'სიმებიანი',
-  era: '',
-  description: '',
+  typeKa: 'სიმებიანი',
+  typeEn: 'String',
+  categoryLabelKa: 'სიმებიანი',
+  categoryLabelEn: 'String',
+  descriptionKa: '',
+  descriptionEn: '',
   imageMode: 'file',
   imageFile: null,
   imageUrl: '',
@@ -36,9 +54,12 @@ const emptyInstrument = {
 
 const emptyFolk = {
   id: '',
-  title: '',
-  tag: '',
-  description: '',
+  titleKa: '',
+  titleEn: '',
+  tagKa: '',
+  tagEn: '',
+  descriptionKa: '',
+  descriptionEn: '',
   imageMode: 'file',
   imageFile: null,
   imageUrl: '',
@@ -52,19 +73,31 @@ const CATEGORY_MAP = {
   keyboard: 'კლავიშებიანი',
 };
 
-const TABS = [
-  { id: 'users', label: 'მომხმარებლები' },
-  { id: 'epochs', label: 'ეპოქები' },
-  { id: 'instruments', label: 'საკრავები' },
-  { id: 'folk', label: 'ფოლკლორი' },
-];
-
 function appendMedia(formData, form, fileKey, urlKey, fieldName) {
-  if (form[`${fileKey}Mode`] === 'file' && form[`${fileKey}File`]) {
-    formData.append(fieldName, form[`${fileKey}File`]);
-  } else if (form[`${fileKey}Mode`] === 'link' && form[urlKey]) {
-    formData.append(urlKey, form[urlKey]);
-  }
+  if (form[`${fileKey}Mode`] === 'file' && form[`${fileKey}File`]) formData.append(fieldName, form[`${fileKey}File`]);
+  else if (form[`${fileKey}Mode`] === 'link' && form[urlKey]) formData.append(urlKey, form[urlKey]);
+}
+
+function appendLocalizedFields(formData, form, key) {
+  formData.append(`${key}Ka`, form[`${key}Ka`] || '');
+  formData.append(`${key}En`, form[`${key}En`] || '');
+}
+
+function BilingualFields({ label, base, form, setForm, required = false, textarea = false }) {
+  const Input = textarea ? 'textarea' : 'input';
+  const extra = textarea ? {} : { type: 'text' };
+  return (
+    <div className={styles.fieldGroup}>
+      <label className={styles.fieldLabel}>{label}</label>
+      <Input
+        {...extra}
+        placeholder={label}
+        value={form[`${base}Ka`]}
+        onChange={(e) => setForm({ ...form, [`${base}Ka`]: e.target.value })}
+        required={required}
+      />
+    </div>
+  );
 }
 
 function MediaField({
@@ -81,6 +114,7 @@ function MediaField({
   onUrl,
   fileBtnLabel = '📁 ფაილიდან',
   linkBtnLabel = '🔗 ლინკით',
+  selectedLabel = 'არჩეულია',
 }) {
   return (
     <div className={styles.mediaContainer}>
@@ -111,7 +145,7 @@ function MediaField({
             className={styles.hiddenFile}
           />
           <label htmlFor={inputId} className={styles.customFileLabel}>
-            {file ? `✅ არჩეულია: ${file.name}` : fileLabel}
+            {file ? `✅ ${selectedLabel}: ${file.name}` : fileLabel}
           </label>
         </div>
       ) : (
@@ -147,12 +181,118 @@ function DataTable({ title, headers, rows, style }) {
 
 export default function AdminPanel({ setCurrentPage }) {
   const { user: currentUser } = useAuth();
+  const { lang, t, isEnglish } = useLanguage();
   const isMainAdmin =
     currentUser?.isAdmin === true || currentUser?.email === 'saba.kapanadze22@gmail.com';
+  const ui = {
+    tabs: [
+      { id: 'users', label: t.admin.users },
+      { id: 'epochs', label: t.admin.epochs },
+      { id: 'instruments', label: t.admin.instruments },
+      { id: 'folk', label: t.admin.folklore },
+    ],
+    userOnlyMainAdmin: isEnglish
+      ? 'Only the main administrator can grant or remove admin status.'
+      : 'მხოლოდ მთავარ ადმინისტრატორს შეუძლია ადმინის სტატუსის მინიჭება ან მოხსნა!',
+    userStatusFailed: isEnglish ? 'Status could not be changed' : 'სტატუსი ვერ შეიცვალა',
+    userDeleteDenied: isEnglish
+      ? 'Only the main administrator can delete users.'
+      : 'მხოლოდ მთავარ ადმინისტრატორს შეუძლია მომხმარებლების წაშლა!',
+    recordDeleteDenied: isEnglish
+      ? 'Only the main administrator can delete records.'
+      : 'მხოლოდ მთავარ ადმინისტრატორს შეუძლია ჩანაწერების წაშლა!',
+    selectedFile: isEnglish ? 'Selected' : 'არჩეულია',
+    usersTitle: isEnglish ? 'Registered users' : 'რეგისტრირებული მომხმარებლები',
+    usersHeaders: [
+      'ID',
+      isEnglish ? 'Name / Email' : 'სახელი / მეილი',
+      isEnglish ? 'Status' : 'სტატუსი',
+      ...(isMainAdmin
+        ? [isEnglish ? 'Admin control' : 'ადმინის მართვა', isEnglish ? 'Action' : 'მოქმედება']
+        : []),
+    ],
+    adminLabel: isEnglish ? 'Admin' : 'ადმინი',
+    userLabel: isEnglish ? 'User' : 'მომხმარებელი',
+    revokeAdmin: isEnglish ? 'Remove admin' : 'სტატუსის მოხსნა',
+    grantAdmin: isEnglish ? 'Make admin' : 'ადმინად მინიჭება',
+    delete: t.common.delete,
+    addEpoch: isEnglish ? 'Add new era' : 'ახალი ეპოქის დამატება',
+    eraLabel: isEnglish ? 'Era' : 'ეპოქა',
+    yearRangeLabel: isEnglish ? 'Year range' : 'წლების დიაპაზონი',
+    eraDescriptionLabel: isEnglish ? 'Era description' : 'ეპოქის აღწერა',
+    countryNameLabel: isEnglish ? 'Country name' : 'ქვეყნის სახელი',
+    countrySummaryLabel: isEnglish ? 'Country summary' : 'ქვეყნის აღწერა',
+    celebrationLabel: isEnglish ? 'Golden age' : 'ოქროს ხანა',
+    warLabel: isEnglish ? 'Wartime' : 'საომარი',
+    mourningLabel: isEnglish ? 'Mourning' : 'სამგლოვიარო',
+    eraImage: isEnglish ? 'Era image:' : 'ეპოქის სურათი:',
+    imageFromComputer: isEnglish ? '📁 Choose image from computer' : '📁 აირჩიეთ სურათი კომპიუტერიდან',
+    imageUrlPlaceholder: isEnglish ? 'Paste image URL...' : 'ჩააკოპირეთ სურათის URL ლინკი...',
+    audioSample: isEnglish ? 'Music audio sample:' : 'მუსიკალური აუდიო ნიმუში:',
+    audioFromComputer: isEnglish ? '📁 Choose audio from computer' : '📁 აირჩიეთ აუდიო კომპიუტერიდან',
+    audioUrlPlaceholder: isEnglish ? 'Paste audio URL...' : 'ჩააკოპირეთ აუდიოს URL ლინკი...',
+    audioFileBtn: isEnglish ? '📁 Audio file' : '📁 აუდიო ფაილიდან',
+    audioLinkBtn: isEnglish ? '🔗 Audio link' : '🔗 აუდიო ლინკით',
+    addEraBtn: isEnglish ? 'Add era' : 'ეპოქის დამატება',
+    autoTranslateReady: isEnglish
+      ? 'Fill in Georgian only. English will be generated automatically on save via {provider}.'
+      : 'შეავსე მხოლოდ ქართული ველები. შენახვისას English ავტომატურად გენერირდება {provider}-ით.',
+    autoTranslateOffline: isEnglish
+      ? 'Free offline mode is active: known terms are translated and short names are transliterated automatically. Long descriptions may stay in Georgian.'
+      : 'ჩართულია უფასო offline რეჟიმი: ცნობილი ტერმინები ითარგმნება, მოკლე სახელები კი ავტომატურად ტრანსლიტერირდება. გრძელი აღწერები შეიძლება ქართულად დარჩეს.',
+    autoTranslateMissing: isEnglish
+      ? 'Auto-translation is currently disabled on the server. Add a Gemini or OpenAI API key, or enter English manually.'
+      : 'ავტომატური თარგმანი ამჟამად გამორთულია სერვერზე. დაამატე Gemini ან OpenAI API key, ან English ხელით შეავსე.',
+    autoTranslateChecking: isEnglish
+      ? 'Checking auto-translation status...'
+      : 'ვამოწმებ ავტომატური თარგმანის სტატუსს...',
+    existingEras: isEnglish ? 'Existing eras on the site' : 'საიტზე არსებული ეპოქები',
+    erasHeaders: [
+      isEnglish ? 'Era' : 'ეპოქა',
+      isEnglish ? 'Year range' : 'წლების დიაპაზონი',
+      isEnglish ? 'Countries' : 'ქვეყნები',
+      ...(isMainAdmin ? [isEnglish ? 'Action' : 'მოქმედება'] : []),
+    ],
+    noCountries: isEnglish ? 'No countries' : 'ქვეყნები არ არის',
+    addInstrument: isEnglish ? 'Add new instrument' : 'ახალი საკრავის დამატება',
+    instrumentNameLabel: isEnglish ? 'Instrument name' : 'საკრავის სახელი',
+    chooseCategory: isEnglish ? 'Choose category:' : 'აირჩიეთ კატეგორია:',
+    typeLabel: isEnglish ? 'Type' : 'ტიპი',
+    categoryLabel: isEnglish ? 'Category label' : 'კატეგორიის წარწერა',
+    instrumentImage: isEnglish ? 'Instrument image:' : 'საკრავის სურათი:',
+    folkInstrumentQuestion: isEnglish
+      ? 'Is this a Georgian folk instrument?'
+      : 'არის თუ არა ქართული ფოლკლორული საკრავი?',
+    descriptionLabel: isEnglish ? 'Description' : 'აღწერა',
+    addInstrumentBtn: isEnglish ? 'Add instrument' : 'საკრავის დამატება',
+    existingInstruments: isEnglish ? 'Existing instruments on the site' : 'საიტზე არსებული საკრავები',
+    instrumentsHeaders: [
+      isEnglish ? 'Name' : 'სახელი',
+      isEnglish ? 'Type' : 'ტიპი',
+      isEnglish ? 'Folk?' : 'ფოლკლორია?',
+      ...(isMainAdmin ? [isEnglish ? 'Action' : 'მოქმედება'] : []),
+    ],
+    addFolklore: isEnglish ? 'Add new region / folklore' : 'ახალი რეგიონის / ფოლკლორის დამატება',
+    folkloreTitleLabel: isEnglish ? 'Title' : 'სათაური',
+    folkloreTagLabel: isEnglish ? 'Tag' : 'თეგი',
+    folkloreImage: isEnglish ? 'Folklore image:' : 'ფოლკლორის სურათი:',
+    addFolkloreBtn: isEnglish ? 'Add folklore' : 'ფოლკლორის დამატება',
+    folkloreRegionsTitle: isEnglish ? 'Georgian folklore regions' : 'ქართული ფოლკლორის რეგიონები',
+    folkloreHeaders: [
+      isEnglish ? 'Title' : 'სათაური',
+      isEnglish ? 'Tag' : 'თეგი',
+      isEnglish ? 'Description' : 'აღწერა',
+      ...(isMainAdmin ? [isEnglish ? 'Action' : 'მოქმედება'] : []),
+    ],
+    yes: t.common.yes,
+    no: t.common.no,
+    fileBtn: t.common.file,
+    linkBtn: t.common.link,
+  };
 
   const authHeaders = () => {
     const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    return token ? withLangHeader({ Authorization: `Bearer ${token}` }) : withLangHeader();
   };
 
   const [activeTab, setActiveTab] = useState('users');
@@ -163,6 +303,7 @@ export default function AdminPanel({ setCurrentPage }) {
   const [epochForm, setEpochForm] = useState(emptyEpoch);
   const [instrumentForm, setInstrumentForm] = useState(emptyInstrument);
   const [folkForm, setFolkForm] = useState(emptyFolk);
+  const [translationStatus, setTranslationStatus] = useState({ enabled: false, loaded: false, provider: null, model: null });
 
   const counts = {
     users: users.length,
@@ -179,6 +320,16 @@ export default function AdminPanel({ setCurrentPage }) {
     fetch(EPOCHS_API).then((r) => r.json()).then(setEpochs).catch(() => {});
     fetch(INSTRUMENTS_API).then((r) => r.json()).then(setInstruments).catch(() => {});
     fetch(FOLK_API).then((r) => r.json()).then(setFolkList).catch(() => {});
+    fetch(TRANSLATION_STATUS_API, { headers: authHeaders() })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`Status failed: ${r.status}`))))
+      .then((data) =>
+        setTranslationStatus({
+          enabled: Boolean(data?.enabled),
+          loaded: true,
+          provider: data?.provider || null,
+          model: data?.model || null,
+        }))
+      .catch(() => setTranslationStatus({ enabled: false, loaded: true, provider: null, model: null }));
   }, []);
 
   const requireMainAdmin = (msg) => {
@@ -188,7 +339,7 @@ export default function AdminPanel({ setCurrentPage }) {
   };
 
   const handleToggleAdmin = async (targetUser) => {
-    if (!requireMainAdmin('მხოლოდ მთავარ ადმინისტრატორს შეუძლია ადმინის სტატუსის მინიჭება ან მოხსნა!')) return;
+    if (!requireMainAdmin(ui.userOnlyMainAdmin)) return;
     const willBeAdmin = !targetUser.isAdmin;
     try {
       await axios.put(
@@ -198,39 +349,45 @@ export default function AdminPanel({ setCurrentPage }) {
       );
       setUsers((prev) => prev.map((u) => (u.id === targetUser.id ? { ...u, isAdmin: willBeAdmin } : u)));
     } catch {
-      alert('სტატუსი ვერ შეიცვალა');
+      alert(ui.userStatusFailed);
     }
   };
 
   const deleteById = async (api, id, setter, denyMsg) => {
     if (!requireMainAdmin(denyMsg)) return;
     try {
-      await fetch(`${api}/${id}`, { method: 'DELETE', headers: authHeaders() });
+      const res = await fetch(`${api}/${id}`, { method: 'DELETE', headers: authHeaders() });
+      if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
       setter((prev) => prev.filter((item) => item._id !== id && item.id !== id));
-    } catch {}
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleDeleteUser = async (id) => {
-    if (!requireMainAdmin('მხოლოდ მთავარ ადმინისტრატორს შეუძლია მომხმარებლების წაშლა!')) return;
+    if (!requireMainAdmin(ui.userDeleteDenied)) return;
     try {
       await axios.delete(`${ADMIN_USERS_API}/${id}`, { headers: authHeaders() });
       setUsers((prev) => prev.filter((u) => u.id !== id));
-    } catch {}
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const postForm = async (api, formData, onSuccess) => {
     try {
       const res = await fetch(api, { method: 'POST', body: formData, headers: authHeaders() });
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
       onSuccess(await res.json());
-    } catch {}
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleAddEpoch = (e) => {
     e.preventDefault();
     const formData = new FormData();
-    ['era', 'yearRange', 'description', 'countryName', 'countryDescription'].forEach((k) =>
-      formData.append(k, epochForm[k])
-    );
+    ['era', 'yearRange', 'description', 'countryName', 'countryDescription', 'celebrationText', 'warText', 'mourningText'].forEach((k) => appendLocalizedFields(formData, epochForm, k));
     appendMedia(formData, epochForm, 'image', 'imageUrl', 'image');
     appendMedia(formData, epochForm, 'audio', 'audioUrl', 'audio');
     postForm(EPOCHS_API, formData, (item) => {
@@ -242,9 +399,8 @@ export default function AdminPanel({ setCurrentPage }) {
   const handleAddInstrument = (e) => {
     e.preventDefault();
     const formData = new FormData();
-    ['name', 'category', 'type', 'era', 'description', 'isFolk'].forEach((k) =>
-      formData.append(k, instrumentForm[k])
-    );
+    ['name', 'type', 'description', 'categoryLabel'].forEach((k) => appendLocalizedFields(formData, instrumentForm, k));
+    ['category', 'isFolk'].forEach((k) => formData.append(k, instrumentForm[k]));
     appendMedia(formData, instrumentForm, 'image', 'imageUrl', 'image');
     postForm(INSTRUMENTS_API, formData, (item) => {
       setInstruments((prev) => [...prev, item]);
@@ -255,7 +411,9 @@ export default function AdminPanel({ setCurrentPage }) {
   const handleAddFolk = (e) => {
     e.preventDefault();
     const formData = new FormData();
-    ['id', 'title', 'tag', 'description', 'youtubeUrl'].forEach((k) => formData.append(k, folkForm[k]));
+    formData.append('id', folkForm.id);
+    formData.append('youtubeUrl', folkForm.youtubeUrl);
+    ['title', 'tag', 'description'].forEach((k) => appendLocalizedFields(formData, folkForm, k));
     appendMedia(formData, folkForm, 'image', 'imageUrl', 'image');
     postForm(FOLK_API, formData, (item) => {
       setFolkList((prev) => [...prev, item]);
@@ -263,19 +421,40 @@ export default function AdminPanel({ setCurrentPage }) {
     });
   };
 
-  const denyDelete = 'მხოლოდ მთავარ ადმინისტრატორს შეუძლია ჩანაწერების წაშლა!';
+  const denyDelete = ui.recordDeleteDenied;
+  const tableGap = { marginTop: 22 };
+  const providerLabel = translationStatus.provider === 'gemini'
+    ? 'Gemini'
+    : translationStatus.provider === 'openai'
+      ? 'OpenAI'
+      : translationStatus.provider === 'offline'
+        ? 'offline fallback'
+      : 'AI';
+  const translationHint = !translationStatus.loaded
+    ? ui.autoTranslateChecking
+    : translationStatus.provider === 'offline'
+      ? ui.autoTranslateOffline
+    : translationStatus.enabled
+      ? ui.autoTranslateReady.replace('{provider}', providerLabel)
+      : ui.autoTranslateMissing;
+  const translationHintClass = translationStatus.loaded && !translationStatus.enabled
+    ? `${styles.formHint} ${styles.formHintWarning}`
+    : styles.formHint;
 
   return (
     <div className={styles.adminContainer}>
       <div className={styles.adminHeader}>
-        <h2>ადმინისტრირების პანელი</h2>
+        <div className={styles.headerCopy}>
+          <span className={styles.headerEyebrow}>{t.navbar.admin}</span>
+          <h2>{t.admin.panel}</h2>
+        </div>
         <button onClick={() => setCurrentPage('main')} className={styles.backBtn}>
-          მთავარზე დაბრუნება
+          {t.admin.back}
         </button>
       </div>
 
       <div className={styles.tabsMenu}>
-        {TABS.map((tab) => (
+        {ui.tabs.map((tab) => (
           <button
             key={tab.id}
             className={`${styles.tabBtn} ${activeTab === tab.id ? styles.activeTab : ''}`}
@@ -288,20 +467,15 @@ export default function AdminPanel({ setCurrentPage }) {
 
       {activeTab === 'users' && (
         <DataTable
-          title="რეგისტრირებული მომხმარებლები"
-          headers={[
-            'ID',
-            'სახელი / მეილი',
-            'სტატუსი',
-            ...(isMainAdmin ? ['ადმინის მართვა', 'მოქმედება'] : []),
-          ]}
+          title={ui.usersTitle}
+          headers={ui.usersHeaders}
           rows={users.map((u) => (
             <tr key={u.id}>
               <td>{u.id}</td>
               <td>{u.fullName || u.username || u.email}</td>
               <td>
-                <span style={{ color: u.isAdmin ? '#f59e0b' : '#888', fontWeight: 500 }}>
-                  {u.isAdmin ? 'ადმინი' : 'მომხმარებელი'}
+                <span className={`${styles.statusPill} ${u.isAdmin ? styles.statusAdmin : styles.statusUser}`}>
+                  {u.isAdmin ? ui.adminLabel : ui.userLabel}
                 </span>
               </td>
               {isMainAdmin && (
@@ -309,22 +483,14 @@ export default function AdminPanel({ setCurrentPage }) {
                   <td>
                     <button
                       onClick={() => handleToggleAdmin(u)}
-                      style={{
-                        background: u.isAdmin ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                        color: u.isAdmin ? '#ef4444' : '#f59e0b',
-                        border: `1px solid ${u.isAdmin ? 'rgba(239, 68, 68, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
-                        padding: '6px 12px',
-                        borderRadius: 8,
-                        cursor: 'pointer',
-                        fontWeight: 500,
-                      }}
+                      className={`${styles.actionBtn} ${u.isAdmin ? styles.actionBtnDanger : styles.actionBtnWarn}`}
                     >
-                      {u.isAdmin ? 'სტატუსის მოხსნა' : 'ადმინად მინიჭება'}
+                      {u.isAdmin ? ui.revokeAdmin : ui.grantAdmin}
                     </button>
                   </td>
                   <td>
                     <button onClick={() => handleDeleteUser(u.id)} className={styles.deleteBtn}>
-                      წაშლა
+                      {ui.delete}
                     </button>
                   </td>
                 </>
@@ -335,89 +501,72 @@ export default function AdminPanel({ setCurrentPage }) {
       )}
 
       {activeTab === 'epochs' && (
-        <div>
+        <div className={styles.sectionStack}>
           <div className={styles.formCard}>
-            <h3>ახალი ეპოქის დამატება</h3>
+            <h3>{ui.addEpoch}</h3>
+            <p className={translationHintClass}>{translationHint}</p>
             <form onSubmit={handleAddEpoch} className={styles.addForm}>
-              <input
-                type="text"
-                placeholder="ეპოქა (მაგ: ანტიკური ხანა)"
-                value={epochForm.era}
-                onChange={(e) => setEpochForm({ ...epochForm, era: e.target.value })}
-                required
-              />
-              <input
-                type="text"
-                placeholder="წლების დიაპაზონი (მაგ: ძვ.წ. 3000 - ახ.წ. 476)"
-                value={epochForm.yearRange}
-                onChange={(e) => setEpochForm({ ...epochForm, yearRange: e.target.value })}
-                required
-              />
-              <textarea
-                placeholder="ეპოქის ზოგადი აღწერა"
-                value={epochForm.description}
-                onChange={(e) => setEpochForm({ ...epochForm, description: e.target.value })}
-              />
-              <input
-                type="text"
-                placeholder="ქვეყნის სახელი (მაგ: ძველი საბერძნეთი)"
-                value={epochForm.countryName}
-                onChange={(e) => setEpochForm({ ...epochForm, countryName: e.target.value })}
-              />
-              <textarea
-                placeholder="ქვეყნის მუსიკალური აღწერა ამ ეპოქაში"
-                value={epochForm.countryDescription}
-                onChange={(e) => setEpochForm({ ...epochForm, countryDescription: e.target.value })}
-              />
+              <BilingualFields label={ui.eraLabel} base="era" form={epochForm} setForm={setEpochForm} required />
+              <BilingualFields label={ui.yearRangeLabel} base="yearRange" form={epochForm} setForm={setEpochForm} required />
+              <BilingualFields label={ui.eraDescriptionLabel} base="description" form={epochForm} setForm={setEpochForm} textarea />
+              <BilingualFields label={ui.countryNameLabel} base="countryName" form={epochForm} setForm={setEpochForm} />
+              <BilingualFields label={ui.countrySummaryLabel} base="countryDescription" form={epochForm} setForm={setEpochForm} textarea />
+              <BilingualFields label={ui.celebrationLabel} base="celebrationText" form={epochForm} setForm={setEpochForm} textarea />
+              <BilingualFields label={ui.warLabel} base="warText" form={epochForm} setForm={setEpochForm} textarea />
+              <BilingualFields label={ui.mourningLabel} base="mourningText" form={epochForm} setForm={setEpochForm} textarea />
 
               <MediaField
-                label="ეპოქის სურათი:"
+                label={ui.eraImage}
                 mode={epochForm.imageMode}
                 file={epochForm.imageFile}
                 url={epochForm.imageUrl}
                 accept="image/*"
                 inputId="epoch-img-file"
-                fileLabel="📁 აირჩიეთ სურათი კომპიუტერიდან"
-                linkPlaceholder="ჩააკოპირეთ სურათის URL ლინკი..."
+                fileLabel={ui.imageFromComputer}
+                linkPlaceholder={ui.imageUrlPlaceholder}
+                fileBtnLabel={ui.fileBtn}
+                linkBtnLabel={ui.linkBtn}
+                selectedLabel={ui.selectedFile}
                 onMode={(imageMode) => setEpochForm({ ...epochForm, imageMode })}
                 onFile={(imageFile) => setEpochForm({ ...epochForm, imageFile })}
                 onUrl={(imageUrl) => setEpochForm({ ...epochForm, imageUrl })}
               />
 
               <MediaField
-                label="მუსიკალური აუდიო ნიმუში:"
+                label={ui.audioSample}
                 mode={epochForm.audioMode}
                 file={epochForm.audioFile}
                 url={epochForm.audioUrl}
                 accept="audio/*"
                 inputId="epoch-audio-file"
-                fileLabel="📁 აირჩიეთ აუდიო კომპიუტერიდან"
-                linkPlaceholder="ჩააკოპირეთ აუდიოს URL ლინკი..."
-                fileBtnLabel="📁 აუდიო ფაილიდან"
-                linkBtnLabel="🔗 აუდიო ლინკით"
+                fileLabel={ui.audioFromComputer}
+                linkPlaceholder={ui.audioUrlPlaceholder}
+                fileBtnLabel={ui.audioFileBtn}
+                linkBtnLabel={ui.audioLinkBtn}
+                selectedLabel={ui.selectedFile}
                 onMode={(audioMode) => setEpochForm({ ...epochForm, audioMode })}
                 onFile={(audioFile) => setEpochForm({ ...epochForm, audioFile })}
                 onUrl={(audioUrl) => setEpochForm({ ...epochForm, audioUrl })}
               />
 
               <button type="submit" className={styles.submitBtn}>
-                ეპოქის დამატება
+                {ui.addEraBtn}
               </button>
             </form>
           </div>
 
           <DataTable
-            title="საიტზე არსებული ეპოქები"
-            style={{ marginTop: 30 }}
-            headers={['ეპოქა', 'წლების დიაპაზონი', 'ქვეყნები', ...(isMainAdmin ? ['მოქმედება'] : [])]}
+            title={ui.existingEras}
+            style={tableGap}
+            headers={ui.erasHeaders}
             rows={epochs.map((item) => (
               <tr key={item._id || item.id}>
-                <td>{item.era}</td>
-                <td>{item.yearRange}</td>
+                <td>{pickLocalized(item.era, lang)}</td>
+                <td>{pickLocalized(item.yearRange, lang)}</td>
                 <td>
                   {item.countries?.length
-                    ? item.countries.map((c) => c.name).join(', ')
-                    : 'ქვეყნები არ არის'}
+                    ? item.countries.map((c) => pickLocalized(c.name, lang)).join(', ')
+                    : ui.noCountries}
                 </td>
                 {isMainAdmin && (
                   <td>
@@ -425,7 +574,7 @@ export default function AdminPanel({ setCurrentPage }) {
                       onClick={() => deleteById(EPOCHS_API, item._id || item.id, setEpochs, denyDelete)}
                       className={styles.deleteBtn}
                     >
-                      წაშლა
+                      {ui.delete}
                     </button>
                   </td>
                 )}
@@ -436,20 +585,15 @@ export default function AdminPanel({ setCurrentPage }) {
       )}
 
       {activeTab === 'instruments' && (
-        <div>
+        <div className={styles.sectionStack}>
           <div className={styles.formCard}>
-            <h3>ახალი საკრავის დამატება</h3>
+            <h3>{ui.addInstrument}</h3>
+            <p className={translationHintClass}>{translationHint}</p>
             <form onSubmit={handleAddInstrument} className={styles.addForm}>
-              <input
-                type="text"
-                placeholder="საკრავის სახელი (მაგ: ფანდური)"
-                value={instrumentForm.name}
-                onChange={(e) => setInstrumentForm({ ...instrumentForm, name: e.target.value })}
-                required
-              />
+              <BilingualFields label={ui.instrumentNameLabel} base="name" form={instrumentForm} setForm={setInstrumentForm} required />
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <label style={{ fontSize: '0.9rem', color: '#aaa' }}>აირჩიეთ კატეგორია:</label>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>{ui.chooseCategory}</label>
                 <select
                   value={instrumentForm.category}
                   onChange={(e) => {
@@ -457,78 +601,66 @@ export default function AdminPanel({ setCurrentPage }) {
                     setInstrumentForm({
                       ...instrumentForm,
                       category,
-                      type: CATEGORY_MAP[category] || 'სიმებიანი',
+                      typeKa: CATEGORY_MAP[category] || 'სიმებიანი',
+                      typeEn: category[0].toUpperCase() + category.slice(1),
+                      categoryLabelKa: CATEGORY_MAP[category] || 'სიმებიანი',
+                      categoryLabelEn: category[0].toUpperCase() + category.slice(1),
                     });
                   }}
                   className={styles.selectInput}
                 >
-                  <option value="string">სიმებიანი საკრავი (String)</option>
-                  <option value="wind">სასულე საკრავი (Wind)</option>
-                  <option value="percussion">დასარტყამი საკრავი (Percussion)</option>
-                  <option value="keyboard">კლავიშებიანი საკრავი (Keyboard)</option>
+                  <option value="string">{isEnglish ? 'String instrument' : 'სიმებიანი საკრავი'} (String)</option>
+                  <option value="wind">{isEnglish ? 'Wind instrument' : 'სასულე საკრავი'} (Wind)</option>
+                  <option value="percussion">{isEnglish ? 'Percussion instrument' : 'დასარტყამი საკრავი'} (Percussion)</option>
+                  <option value="keyboard">{isEnglish ? 'Keyboard instrument' : 'კლავიშებიანი საკრავი'} (Keyboard)</option>
                 </select>
               </div>
 
-              <input
-                type="text"
-                placeholder="ტიპი (სიმებიანი, სასულე...)"
-                value={instrumentForm.type}
-                onChange={(e) => setInstrumentForm({ ...instrumentForm, type: e.target.value })}
-                required
-              />
-              <input
-                type="text"
-                placeholder="ეპოქა / პერიოდი"
-                value={instrumentForm.era}
-                onChange={(e) => setInstrumentForm({ ...instrumentForm, era: e.target.value })}
-                required
-              />
+              <BilingualFields label={ui.typeLabel} base="type" form={instrumentForm} setForm={setInstrumentForm} required />
+              <BilingualFields label={ui.categoryLabel} base="categoryLabel" form={instrumentForm} setForm={setInstrumentForm} />
 
               <MediaField
-                label="საკრავის სურათი:"
+                label={ui.instrumentImage}
                 mode={instrumentForm.imageMode}
                 file={instrumentForm.imageFile}
                 url={instrumentForm.imageUrl}
                 accept="image/*"
                 inputId="inst-img-file"
-                fileLabel="📁 აირჩიეთ სურათი კომპიუტერიდან"
-                linkPlaceholder="ჩააკოპირეთ სურათის URL ლინკი..."
+                fileLabel={ui.imageFromComputer}
+                linkPlaceholder={ui.imageUrlPlaceholder}
+                fileBtnLabel={ui.fileBtn}
+                linkBtnLabel={ui.linkBtn}
+                selectedLabel={ui.selectedFile}
                 onMode={(imageMode) => setInstrumentForm({ ...instrumentForm, imageMode })}
                 onFile={(imageFile) => setInstrumentForm({ ...instrumentForm, imageFile })}
                 onUrl={(imageUrl) => setInstrumentForm({ ...instrumentForm, imageUrl })}
               />
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#e5e7eb' }}>
+              <label className={styles.checkboxRow}>
                 <input
                   type="checkbox"
                   checked={instrumentForm.isFolk}
                   onChange={(e) => setInstrumentForm({ ...instrumentForm, isFolk: e.target.checked })}
                 />
-                არის თუ არა ქართული ფოლკლორული საკრავი?
+                {ui.folkInstrumentQuestion}
               </label>
 
-              <textarea
-                placeholder="აღწერა"
-                value={instrumentForm.description}
-                onChange={(e) => setInstrumentForm({ ...instrumentForm, description: e.target.value })}
-                required
-              />
+              <BilingualFields label={ui.descriptionLabel} base="description" form={instrumentForm} setForm={setInstrumentForm} textarea required />
               <button type="submit" className={styles.submitBtn}>
-                საკრავის დამატება
+                {ui.addInstrumentBtn}
               </button>
             </form>
           </div>
 
           <DataTable
-            title="საიტზე არსებული საკრავები"
-            style={{ marginTop: 30 }}
-            headers={['სახელი', 'ტიპი', 'ეპოქა', 'ფოლკლორია?', ...(isMainAdmin ? ['მოქმედება'] : [])]}
+            title={ui.existingInstruments}
+            style={tableGap}
+            headers={ui.instrumentsHeaders}
             rows={instruments.map((item) => (
               <tr key={item._id || item.id}>
-                <td>{item.name}</td>
-                <td>{item.type}</td>
-                <td>{item.era}</td>
-                <td>{item.isFolk ? 'დიახ' : 'არა'}</td>
+                <td>{pickLocalized(item.name, lang)}</td>
+                <td>{pickLocalized(item.type, lang)}</td>
+                <td>{item.isFolk ? ui.yes : ui.no}</td>
                 {isMainAdmin && (
                   <td>
                     <button
@@ -537,7 +669,7 @@ export default function AdminPanel({ setCurrentPage }) {
                       }
                       className={styles.deleteBtn}
                     >
-                      წაშლა
+                      {ui.delete}
                     </button>
                   </td>
                 )}
@@ -548,9 +680,10 @@ export default function AdminPanel({ setCurrentPage }) {
       )}
 
       {activeTab === 'folk' && (
-        <div>
+        <div className={styles.sectionStack}>
           <div className={styles.formCard}>
-            <h3>ახალი რეგიონის / ფოლკლორის დამატება</h3>
+            <h3>{ui.addFolklore}</h3>
+            <p className={translationHintClass}>{translationHint}</p>
             <form onSubmit={handleAddFolk} className={styles.addForm}>
               <input
                 type="text"
@@ -559,30 +692,21 @@ export default function AdminPanel({ setCurrentPage }) {
                 onChange={(e) => setFolkForm({ ...folkForm, id: e.target.value })}
                 required
               />
-              <input
-                type="text"
-                placeholder="სათაური (მაგ: რაჭული ფოლკლორი)"
-                value={folkForm.title}
-                onChange={(e) => setFolkForm({ ...folkForm, title: e.target.value })}
-                required
-              />
-              <input
-                type="text"
-                placeholder="თეგი / წარწერა (მაგ: ფერხული & სტვირი)"
-                value={folkForm.tag}
-                onChange={(e) => setFolkForm({ ...folkForm, tag: e.target.value })}
-                required
-              />
+              <BilingualFields label={ui.folkloreTitleLabel} base="title" form={folkForm} setForm={setFolkForm} required />
+              <BilingualFields label={ui.folkloreTagLabel} base="tag" form={folkForm} setForm={setFolkForm} required />
 
               <MediaField
-                label="ფოლკლორის სურათი:"
+                label={ui.folkloreImage}
                 mode={folkForm.imageMode}
                 file={folkForm.imageFile}
                 url={folkForm.imageUrl}
                 accept="image/*"
                 inputId="folk-img-file"
-                fileLabel="📁 აირჩიეთ სურათი კომპიუტერიდან"
-                linkPlaceholder="ჩააკოპირეთ სურათის URL ლინკი..."
+                fileLabel={ui.imageFromComputer}
+                linkPlaceholder={ui.imageUrlPlaceholder}
+                fileBtnLabel={ui.fileBtn}
+                linkBtnLabel={ui.linkBtn}
+                selectedLabel={ui.selectedFile}
                 onMode={(imageMode) => setFolkForm({ ...folkForm, imageMode })}
                 onFile={(imageFile) => setFolkForm({ ...folkForm, imageFile })}
                 onUrl={(imageUrl) => setFolkForm({ ...folkForm, imageUrl })}
@@ -594,26 +718,21 @@ export default function AdminPanel({ setCurrentPage }) {
                 value={folkForm.youtubeUrl}
                 onChange={(e) => setFolkForm({ ...folkForm, youtubeUrl: e.target.value })}
               />
-              <textarea
-                placeholder="აღწერა"
-                value={folkForm.description}
-                onChange={(e) => setFolkForm({ ...folkForm, description: e.target.value })}
-                required
-              />
+              <BilingualFields label={ui.descriptionLabel} base="description" form={folkForm} setForm={setFolkForm} textarea required />
               <button type="submit" className={styles.submitBtn}>
-                ფოლკლორის დამატება
+                {ui.addFolkloreBtn}
               </button>
             </form>
           </div>
 
           <DataTable
-            title="ქართული ფოლკლორის რეგიონები"
-            style={{ marginTop: 30 }}
-            headers={['სათაური', 'თეგი', 'აღწერა', ...(isMainAdmin ? ['მოქმედება'] : [])]}
+            title={ui.folkloreRegionsTitle}
+            style={tableGap}
+            headers={ui.folkloreHeaders}
             rows={folkList.map((item) => (
               <tr key={item._id || item.id}>
-                <td>{item.title}</td>
-                <td>{item.tag}</td>
+                <td>{pickLocalized(item.title, lang)}</td>
+                <td>{pickLocalized(item.tag, lang)}</td>
                 <td
                   style={{
                     maxWidth: 300,
@@ -622,7 +741,7 @@ export default function AdminPanel({ setCurrentPage }) {
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {item.description}
+                  {pickLocalized(item.description, lang)}
                 </td>
                 {isMainAdmin && (
                   <td>
@@ -630,7 +749,7 @@ export default function AdminPanel({ setCurrentPage }) {
                       onClick={() => deleteById(FOLK_API, item._id || item.id, setFolkList, denyDelete)}
                       className={styles.deleteBtn}
                     >
-                      წაშლა
+                      {ui.delete}
                     </button>
                   </td>
                 )}

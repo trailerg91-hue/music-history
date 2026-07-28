@@ -1,0 +1,30 @@
+{
+  "name": "history-of-music-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Express API for History of Music",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "start": "node index.js",
+    "seed": "node seed.js",
+    "migrate:i18n": "node scripts/migrateI18n.js",
+    "restore:i18n": "node scripts/restoreLocalizedContent.js"
+  },
+  "dependencies": {
+    "@google/genai": "^2.13.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.7.4",
+    "multer": "^2.2.0",
+    "nodemailer": "^9.0.3",
+    "openai": "^7.0.0",
+    "transliteration": "^2.6.1"
+  }
+}

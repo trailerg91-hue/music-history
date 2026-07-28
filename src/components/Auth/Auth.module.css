@@ -1,90 +1,110 @@
 .authWrapper {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 100vh;
   height: 100vh;
   width: 100vw;
-  background: #ffffff;
+  background: #050505;
   position: fixed;
   top: 0;
   left: 0;
   z-index: 9999;
   box-sizing: border-box;
-  overflow: hidden;
-  column-gap: 0;
+  overflow-y: auto;
+  padding: 24px;
   font-family: 'Fira GO', sans-serif;
 }
 
 .heroPanel {
-  position: relative;
-  height: 100%;
-  min-height: 100%;
-  background: #000;
-  overflow: hidden;
-  border: none;
-  outline: none;
+  display: none;
 }
 
 .heroImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 42% center;
-  display: block;
+  display: none;
 }
 
 .formPanel {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  height: 100%;
-  overflow-y: auto;
+  align-items: center;
+  width: 100%;
+  min-height: 100%;
+  overflow: visible;
   overscroll-behavior: contain;
-  padding: 28px 28px 48px;
+  padding: 0;
   box-sizing: border-box;
-  background: #ffffff;
+  background: transparent;
   border: none;
 }
 
 .authForm {
-  background: transparent;
-  padding: 8px 16px 24px;
-  border-radius: 0;
-  border: none;
-  box-shadow: none;
+  background: rgba(12, 12, 12, 0.96);
+  padding: 22px 22px 26px;
+  border-radius: 24px;
+  border: 1px solid rgba(245, 158, 11, 0.18);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
   gap: 14px;
   width: 100%;
-  max-width: 440px;
-  margin-top: 12px;
-  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  max-width: 430px;
+  margin-top: 0;
+  animation: popIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.18) forwards;
+}
+
+.backButton {
+  align-self: center;
+  min-height: 34px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #d8b46a;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.25s ease, transform 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -4px;
+}
+
+.backArrow {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.backButton:hover {
+  color: #f6c66a;
+  transform: translateX(-2px);
 }
 
 .brandLogo {
-  width: min(410px, 100%);
+  width: min(250px, 100%);
   max-width: 100%;
   height: auto;
   margin: 0 auto;
   display: block;
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .authForm h2 {
-  color: #0a0a0a;
+  color: #fff8eb;
   text-align: center;
-  margin: -28px 0 0;
-  font-size: 1.75rem;
+  margin: -6px 0 0;
+  font-size: 1.6rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.02em;
 }
 
 .input {
   padding: 16px 20px;
   border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  color: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f5f5f5;
   font-size: 1rem;
   transition: all 0.3s ease;
   width: 100%;
@@ -92,12 +112,12 @@
 }
 
 .input::placeholder {
-  color: #9ca3af;
+  color: #8f96a3;
 }
 
 .input:focus {
   border-color: #f59e0b;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
   outline: none;
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
 }
@@ -135,14 +155,14 @@
   color: #dc2626;
   font-size: 0.85rem;
   text-align: center;
-  background: rgba(239, 68, 68, 0.08);
+  background: rgba(239, 68, 68, 0.12);
   padding: 8px;
   border-radius: 10px;
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .hintText {
-  color: #6b7280;
+  color: #9ca3af;
   font-size: 0.8rem;
   text-align: center;
   margin: -8px 0 0;
@@ -153,7 +173,7 @@
   color: #b45309;
   font-size: 0.9rem;
   text-align: center;
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(245, 158, 11, 0.12);
   padding: 10px;
   border-radius: 10px;
   border: 1px solid rgba(245, 158, 11, 0.28);
@@ -164,8 +184,8 @@
   margin: 0;
   text-align: center;
   font-size: 1.05rem;
-  color: #111;
-  background: #fffbeb;
+  color: #fff8eb;
+  background: rgba(255, 251, 235, 0.06);
   border: 1px solid rgba(245, 158, 11, 0.45);
   border-radius: 12px;
   padding: 12px;
@@ -249,32 +269,39 @@
 
 @media (max-width: 900px) {
   .authWrapper {
-    grid-template-columns: 1fr;
+    min-height: 100dvh;
     height: auto;
-    min-height: 100vh;
-    overflow-y: auto;
-    position: fixed;
-  }
-
-  .heroPanel {
-    min-height: 28vh;
-    max-height: 32vh;
-    height: auto;
+    padding: 18px;
   }
 
   .formPanel {
-    height: auto;
-    overflow: visible;
-    padding: 12px 18px 40px;
-    background: #ffffff;
+    min-height: 100dvh;
+    padding: 0 0 calc(18px + env(safe-area-inset-bottom, 0px));
+    align-items: center;
   }
 
   .authForm {
-    margin-top: 0;
-    padding: 8px 8px 32px;
+    padding: 18px 18px 22px;
+    max-width: 420px;
   }
 
   .brandLogo {
-    width: min(260px, 70vw);
+    width: min(220px, 72vw);
+  }
+
+  .authForm h2 {
+    margin-top: 0;
+    font-size: 1.45rem;
+  }
+
+  .submitButton,
+  .secondaryButton,
+  .authForm .input {
+    min-height: 48px;
+  }
+
+  .eyeBtn {
+    width: 44px;
+    height: 44px;
   }
 }

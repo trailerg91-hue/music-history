@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from './authContext.jsx';
-import { PASSWORD_HINT, validatePasswordClient } from '../../utils/passwordRules.js';
+import { useLanguage } from '../../i18n/LanguageContext.jsx';
 import styles from './Auth.module.css';
 
 const setField = (key, set) => (e) => {
@@ -9,31 +9,17 @@ const setField = (key, set) => (e) => {
 };
 
 export default function Auth({ setCurrentPage }) {
-  const [isLogin, setIsLogin] = useState(true);
   const [mode, setMode] = useState('auth'); // auth | verify
   const [info, setInfo] = useState('');
   const [formData, setFormData] = useState({
-    fullName: '',
     email: '',
     password: '',
-    confirmPassword: '',
     code: '',
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { register, login, verifyEmail, resendVerification } = useContext(AuthContext);
-
-  useEffect(() => {
-    const sync = () => {
-      setIsLogin(localStorage.getItem('authType') !== 'register');
-      setErrors({});
-      setInfo('');
-    };
-    sync();
-    window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
-  }, []);
+  const { login, verifyEmail, resendVerification } = useContext(AuthContext);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -43,12 +29,11 @@ export default function Auth({ setCurrentPage }) {
     let cancelled = false;
     (async () => {
       setMode('verify');
-      setInfo('მიმდინარეობს ელ-ფოსტის დადასტურება...');
+      setInfo(t.auth.verifying);
       const result = await verifyEmail({ token: verifyToken });
       if (cancelled) return;
       if (result.success) {
-        setInfo(result.message + ' ახლა შეიყვანე პაროლი და შეხედი.');
-        setIsLogin(true);
+        setInfo(`${result.message} ${t.auth.enterPassAfterVerify}`);
         setMode('auth');
         window.history.replaceState({}, '', window.location.pathname);
       } else {
@@ -67,7 +52,7 @@ export default function Auth({ setCurrentPage }) {
     if (!formData.email || !formData.password) return false;
     const loginResult = await login(formData.email, formData.password);
     if (loginResult.success) {
-      setCurrentPage('main');
+      setCurrentPage(localStorage.getItem('currentPage') || 'main');
       return true;
     }
     return false;
@@ -80,7 +65,7 @@ export default function Auth({ setCurrentPage }) {
 
     if (mode === 'verify') {
       if (!formData.email || !formData.code) {
-        return setErrors({ email: 'შეიყვანე ელ-ფოსტა და კოდი' });
+        return setErrors({ email: t.auth.enterMailAndCode });
       }
       const result = await verifyEmail({
         email: formData.email,
@@ -92,42 +77,14 @@ export default function Auth({ setCurrentPage }) {
       const loggedIn = await tryAutoLogin();
       if (loggedIn) return;
 
-      setInfo(result.message + ' ახლა შეხედი იმავე პაროლით.');
+      setInfo(`${result.message} ${t.auth.enterPassAfterVerify}`);
       setMode('auth');
-      setIsLogin(true);
-      return;
-    }
-
-    if (!isLogin) {
-      if (formData.password !== formData.confirmPassword) {
-        return setErrors({ confirmPassword: 'პაროლები არ ემთხვევა!' });
-      }
-
-      const passwordError = validatePasswordClient(formData.password);
-      if (passwordError) return setErrors({ password: passwordError });
-
-      const result = await register(formData.fullName, formData.email, formData.password);
-      if (!result.success) return setErrors({ email: result.message });
-
-      // სატესტო რეჟიმში პაროლი განახლდა უკვე ვერიფიცირებულ ანგარიშზე
-      if (result.passwordUpdated) {
-        setInfo(result.message);
-        setIsLogin(true);
-        setMode('auth');
-        return;
-      }
-
-      setMode('verify');
-      setInfo(result.message);
-      if (result.code) {
-        setFormData((prev) => ({ ...prev, code: result.code }));
-      }
       return;
     }
 
     const result = await login(formData.email, formData.password);
     if (result.success) {
-      setCurrentPage('main');
+      setCurrentPage(localStorage.getItem('currentPage') || 'main');
       return;
     }
 
@@ -146,13 +103,13 @@ export default function Auth({ setCurrentPage }) {
     setErrors({
       email:
         result.message ||
-        'არასწორი ელ-ფოსტა ან პაროლი. თუ დაგავიწყდა, რეგისტრაციიდან თავიდან სცადე (სატესტო რეჟიმში პაროლი განახლდება).',
+        t.auth.badLogin,
     });
   };
 
   const handleResend = async () => {
     setErrors({});
-    if (!formData.email) return setErrors({ email: 'ჯერ შეიყვანე ელ-ფოსტა' });
+    if (!formData.email) return setErrors({ email: t.auth.enterEmailFirst });
     const result = await resendVerification(formData.email);
     if (!result.success) return setErrors({ email: result.message });
     setInfo(result.message);
@@ -166,7 +123,7 @@ export default function Auth({ setCurrentPage }) {
       <aside className={styles.heroPanel} aria-hidden="true">
         <img
           className={styles.heroImage}
-          src="/images/auth-hero-v3.png"
+          src="/images/auth-hero.png"
           alt=""
         />
       </aside>
@@ -179,7 +136,7 @@ export default function Auth({ setCurrentPage }) {
           alt="History of Music"
         />
         <h2>
-          {mode === 'verify' ? 'მეილის დადასტურება' : isLogin ? 'შესვლა' : 'რეგისტრაცია'}
+          {mode === 'verify' ? t.auth.verifyTitle : t.auth.loginTitle}
         </h2>
 
         {mode === 'verify' ? (
@@ -187,13 +144,13 @@ export default function Auth({ setCurrentPage }) {
             {info && <p className={styles.infoText}>{info}</p>}
             {formData.code && (
               <p className={styles.codeBox}>
-                შენი კოდი: <strong>{formData.code}</strong>
+                {t.auth.codePrefix} <strong>{formData.code}</strong>
               </p>
             )}
             <input
               className={styles.input}
               type="email"
-              placeholder="ელ-ფოსტა"
+              placeholder={t.auth.email}
               value={formData.email}
               onChange={setField('email', setFormData)}
               required
@@ -201,7 +158,7 @@ export default function Auth({ setCurrentPage }) {
             <input
               className={styles.input}
               type="text"
-              placeholder="6-ნიშნა კოდი"
+              placeholder={t.auth.code}
               value={formData.code}
               onChange={setField('code', setFormData)}
               required
@@ -209,32 +166,25 @@ export default function Auth({ setCurrentPage }) {
             />
             {errors.email && <span className={styles.errorText}>{errors.email}</span>}
             <button className={styles.submitButton} type="submit">
-              დადასტურება და შესვლა
+              {t.auth.confirmAndLogin}
+            </button>
+            <button type="button" className={styles.backButton} onClick={() => setCurrentPage('main')}>
+              <span className={styles.backArrow} aria-hidden="true">←</span>
+              <span>{t.adminPage.back}</span>
             </button>
             <button type="button" className={styles.secondaryButton} onClick={handleResend}>
-              კოდის ხელახლა მიღება
+              {t.auth.resendCode}
             </button>
             <p className={styles.toggleText} onClick={() => setMode('auth')}>
-              უკან შესვლაზე
+              {t.auth.backToLogin}
             </p>
           </>
         ) : (
           <>
-            {!isLogin && (
-              <input
-                className={styles.input}
-                type="text"
-                placeholder="სახელი და გვარი"
-                value={formData.fullName}
-                onChange={setField('fullName', setFormData)}
-                required
-              />
-            )}
-
             <input
               className={styles.input}
               type="email"
-              placeholder="რეალური ელ-ფოსტა"
+              placeholder={t.auth.realEmail}
               value={formData.email}
               onChange={setField('email', setFormData)}
               required
@@ -245,7 +195,7 @@ export default function Auth({ setCurrentPage }) {
               <input
                 className={styles.input}
                 type={showPassword ? 'text' : 'password'}
-                placeholder="პაროლი (6-10 სიმბოლო)"
+                placeholder={t.auth.password}
                 value={formData.password}
                 onChange={setField('password', setFormData)}
                 required
@@ -256,63 +206,23 @@ export default function Auth({ setCurrentPage }) {
                 type="button"
                 className={styles.eyeBtn}
                 onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? 'პაროლის დამალვა' : 'პაროლის ჩვენება'}
+                aria-label={showPassword ? t.auth.hidePassword : t.auth.showPassword}
               >
                 {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
-            {!isLogin && (
-              <p className={styles.hintText}>
-                სატესტო რეჟიმი: კოდი გამოჩნდება ეკრანზე. თუ შესვლა ვერ ხერხდება, თავიდან
-                დარეგისტრირდი იმავე მეილით — პაროლი განახლდება.
-              </p>
-            )}
-            {!isLogin && <p className={styles.hintText}>{PASSWORD_HINT}</p>}
+            <p className={styles.hintText}>{t.auth.adminOnlyHint}</p>
             {errors.password && <span className={styles.errorText}>{errors.password}</span>}
-
-            {!isLogin && (
-              <div className={styles.passwordField}>
-                <input
-                  className={styles.input}
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="გაიმეორეთ პაროლი"
-                  value={formData.confirmPassword}
-                  onChange={setField('confirmPassword', setFormData)}
-                  required
-                  minLength={6}
-                  maxLength={10}
-                />
-                <button
-                  type="button"
-                  className={styles.eyeBtn}
-                  onClick={() => setShowConfirmPassword((v) => !v)}
-                  aria-label={showConfirmPassword ? 'პაროლის დამალვა' : 'პაროლის ჩვენება'}
-                >
-                  {showConfirmPassword ? '🙈' : '👁️'}
-                </button>
-              </div>
-            )}
-            {errors.confirmPassword && (
-              <span className={styles.errorText}>{errors.confirmPassword}</span>
-            )}
 
             {info && <p className={styles.infoText}>{info}</p>}
 
             <button className={styles.submitButton} type="submit">
-              {isLogin ? 'შესვლა' : 'რეგისტრაცია'}
+              {t.auth.loginTitle}
             </button>
-            <p
-              className={styles.toggleText}
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setErrors({});
-                setInfo('');
-                setShowPassword(false);
-                setShowConfirmPassword(false);
-              }}
-            >
-              {isLogin ? 'არ გაქვს ანგარიში? დარეგისტრირდი' : 'უკვე გაქვს ანგარიში? შედი'}
-            </p>
+            <button type="button" className={styles.backButton} onClick={() => setCurrentPage('main')}>
+              <span className={styles.backArrow} aria-hidden="true">←</span>
+              <span>{t.adminPage.back}</span>
+            </button>
           </>
         )}
       </form>

@@ -1,175 +1,28 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CustomAudioPlayer from '../CustomAudioPlayer/CustomAudioPlayer.jsx';
+import { useLanguage } from '../../i18n/LanguageContext.jsx';
+import { pickLocalized } from '../../i18n/localize.js';
 import './Timeline.css';
 
-const IMG = {
-  greece: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Akropolis_by_Leo_von_Klenze.jpg',
-  usa: 'https://aviatickets.ge/wp-content/uploads/2019/12/Overlooking-DC.jpg',
-  japan: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAaQIwTZ65dNvrdXKiIF0cGYp1iIzv7HXtmKU9ajBhOw&s=10',
-  georgia: 'https://cdn.tvpirveli.ge/w/2504/43/71/79/360443be686947a6b7ec1f1cbe8e77b3/shemomkvani-turizmi.png',
-  france: 'https://api.tabula.ge/files/styles/news_thumb_lg/public/photos/2018/11/v2exl2nje6lsczqgxklf2mh1qjkhmfu-xlarge.jpeg.jpg?itok=uDTo-0jx',
-  egypt: 'https://mariammeritamen.wordpress.com/wp-content/uploads/2014/08/ancient-egypt-pyramids-398605.jpg',
-};
-
-const fallbackImages = {
-  საბერძნეთი: IMG.greece,
-  'ძველი საბერძნეთი': IMG.greece,
-  Greece: IMG.greece,
-  აშშ: IMG.usa,
-  USA: IMG.usa,
-  იაპონია: IMG.japan,
-  Japan: IMG.japan,
-  საქართველო: IMG.georgia,
-  Georgia: IMG.georgia,
-  საფრანგეთი: IMG.france,
-  France: IMG.france,
-  ეგვიპტე: IMG.egypt,
-  'ძველი ეგვიპტე': IMG.egypt,
-  Egypt: IMG.egypt,
-};
-
-const sectionTitles = {
-  celebration: '✨ ოქროს ხანა / სალხინო',
-  war: '⚔️ საომარი მდგომარეობა',
-  mourning: '🕯️ სამგლოვიარო პერიოდი',
-};
-
+const IMG = { greece: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Akropolis_by_Leo_von_Klenze.jpg', usa: 'https://aviatickets.ge/wp-content/uploads/2019/12/Overlooking-DC.jpg', japan: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAaQIwTZ65dNvrdXKiIF0cGYp1iIzv7HXtmKU9ajBhOw&s=10', georgia: 'https://cdn.tvpirveli.ge/w/2504/43/71/79/360443be686947a6b7ec1f1cbe8e77b3/shemomkvani-turizmi.png', france: 'https://api.tabula.ge/files/styles/news_thumb_lg/public/photos/2018/11/v2exl2nje6lsczqgxklf2mh1qjkhmfu-xlarge.jpeg.jpg?itok=uDTo-0jx', egypt: 'https://mariammeritamen.wordpress.com/wp-content/uploads/2014/08/ancient-egypt-pyramids-398605.jpg' };
+const aliases = [[['საბერძნეთი','ძველი საბერძნეთი','Greece'],'greece'],[['აშშ','USA'],'usa'],[['იაპონია','Japan'],'japan'],[['საქართველო','Georgia'],'georgia'],[['საფრანგეთი','France'],'france'],[['ეგვიპტე','ძველი ეგვიპტე','Egypt'],'egypt']];
+const fallbackImages = Object.fromEntries(aliases.flatMap(([names, key]) => names.map((n) => [n, IMG[key]])));
 const eraOrder = { ancient: 1, medieval: 2, modern: 3 };
-const countryImg = (c) => c.image || c.img || c.imageUrl || fallbackImages[c.name] || fallbackImages[c.title];
 const idOf = (item, i) => item.id || item._id || i;
 
 export default function Timeline({ data }) {
-  const sorted = data
-    ? [...data].sort((a, b) => (eraOrder[a.id] || 99) - (eraOrder[b.id] || 99))
-    : [];
-
+  const { t, lang } = useLanguage();
+  const sectionTitles = t.timeline.sections;
+  const sorted = data ? [...data].sort((a, b) => (eraOrder[a.id] || 99) - (eraOrder[b.id] || 99)) : [];
   const [activeEraId, setActiveEraId] = useState(idOf(sorted[0] || {}, 0));
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [activeSection, setActiveSection] = useState('celebration');
   const currentEra = sorted.find((item) => idOf(item) === activeEraId) || sorted[0];
+  const text = (v) => pickLocalized(v, lang);
+  const countryImg = (c) => c.image || c.img || c.imageUrl || fallbackImages[text(c.name) || text(c.title)] || fallbackImages[c.name] || fallbackImages[c.title];
+  const selectEra = (eraId) => { setActiveEraId(eraId); setSelectedCountry(null); setActiveSection('celebration'); };
+  const openCountry = (country) => { setSelectedCountry(country); const keys = Object.keys(country.sections || {}); setActiveSection(keys.includes('celebration') ? 'celebration' : keys[0] || 'celebration'); };
 
-  const selectEra = (eraId) => {
-    setActiveEraId(eraId);
-    setSelectedCountry(null);
-  };
-
-  return (
-    <div className="timeline-container">
-      <div className="era-tabs-wrapper">
-        {sorted.map((era, i) => {
-          const eraId = idOf(era, i);
-          return (
-            <button
-              key={eraId}
-              className={`era-tab-btn ${eraId === activeEraId ? 'active' : ''}`}
-              onClick={() => selectEra(eraId)}
-            >
-              <span className="tab-title">{era.era || era.title}</span>
-              {era.yearRange && <span className="tab-years">{era.yearRange}</span>}
-            </button>
-          );
-        })}
-      </div>
-
-      <AnimatePresence mode="wait">
-        {!selectedCountry && currentEra && (
-          <motion.div
-            key={`overview-${activeEraId}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-          >
-            <div className="section-intro-header">
-              <h2>{currentEra.era}</h2>
-              <p>აირჩიეთ ქვეყანა, რომ გაეცნოთ მის მუსიკალურ ისტორიას, ოქროს ხანასა და ტრადიციებს</p>
-            </div>
-
-            <div className="comparison-grid">
-              {currentEra.countries?.map((country, i) => {
-                const img = countryImg(country);
-                return (
-                  <motion.div
-                    key={country._id || country.id || i}
-                    className="comparison-card"
-                    onClick={() => setSelectedCountry(country)}
-                    whileHover={{ scale: 1.02, y: -5, rotateX: 2, rotateY: -2 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {img && (
-                      <div className="comparison-img-wrapper">
-                        <img src={img} alt={country.name || country.title} className="comparison-img" />
-                        <div className="img-overlay" />
-                      </div>
-                    )}
-                    <div className="comparison-card-body">
-                      <h3>{country.name || country.title}</h3>
-                      <p className="comparison-summary">{country.summary}</p>
-                      <button className="explore-btn">
-                        <span>დეტალურად და მუსიკა</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <polyline points="9 18 15 12 9 6" />
-                        </svg>
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-
-        {selectedCountry && (() => {
-          const detailImg = countryImg(selectedCountry);
-          return (
-          <motion.div
-            key={`detail-${selectedCountry.id || selectedCountry.name}`}
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.4 }}
-          >
-            <button className="back-to-comparison-btn" onClick={() => setSelectedCountry(null)}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-              <span>უკან შედარებაში</span>
-            </button>
-
-            <div className="detail-hero-card">
-              {detailImg && (
-                <div className="detail-img-wrapper">
-                  <img
-                    src={detailImg}
-                    alt={selectedCountry.name || selectedCountry.title}
-                    className="detail-img"
-                  />
-                </div>
-              )}
-              <div className="detail-header-info">
-                <h2>{selectedCountry.name || selectedCountry.title}</h2>
-                <p className="detail-main-summary">{selectedCountry.summary}</p>
-              </div>
-            </div>
-
-            <div className="detail-sections-grid">
-              {selectedCountry.sections &&
-                Object.entries(selectedCountry.sections).map(([key, sec]) => (
-                  <div key={key} className="detail-section-box">
-                    <span className="detail-section-badge">{sectionTitles[key] || key}</span>
-                    <p className="detail-section-text">{sec.text}</p>
-                    {sec.audio && (
-                      <div className="detail-player-wrapper">
-                        <CustomAudioPlayer src={sec.audio} />
-                      </div>
-                    )}
-                  </div>
-                ))}
-            </div>
-          </motion.div>
-          );
-        })()}
-      </AnimatePresence>
-    </div>
-  );
+  return <div className="timeline-container"><div className="timeline-hero"><h2 className="timeline-title">{t.timeline.title}</h2><p className="timeline-subtitle">{t.timeline.subtitle}</p><p className="timeline-hint"><span className="timeline-hint-dot" aria-hidden="true" />{t.timeline.hint}</p></div><div className="era-tabs-wrapper" role="tablist" aria-label={t.timeline.title}>{sorted.map((era, i) => { const eraId = idOf(era, i); const active = eraId === activeEraId; return <button key={eraId} type="button" role="tab" aria-selected={active} className={`era-tab-btn ${active ? 'active' : ''}`} onClick={() => selectEra(eraId)}><span className="tab-title">{text(era.era || era.title)}</span>{text(era.yearRange) ? <span className="tab-years">{text(era.yearRange)}</span> : null}</button>; })}</div><AnimatePresence mode="wait">{!selectedCountry && currentEra && <motion.div key={`overview-${activeEraId}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}><div className="era-label-row"><span className="era-label">{text(currentEra.era)}</span>{text(currentEra.yearRange) ? <span className="era-label-years">{text(currentEra.yearRange)}</span> : null}</div><div className="comparison-grid">{currentEra.countries?.map((country, i) => { const img = countryImg(country); const name = text(country.name || country.title); return <motion.div key={country._id || country.id || i} className="comparison-card" role="button" tabIndex={0} onClick={() => openCountry(country)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCountry(country); } }} whileHover={{ y: -6 }} transition={{ duration: 0.35, ease: [0.14, 0.82, 0.32, 1] }}><div className="comparison-img-wrapper">{img ? <img src={img} alt="" className="comparison-img" /> : <div className="comparison-img-fallback" />}<div className="img-overlay" /><div className="comparison-card-meta"><h3>{name}</h3>{text(country.summary) ? <p className="comparison-tag">{text(country.summary)}</p> : null}</div></div></motion.div>; })}</div></motion.div>}{selectedCountry && (() => { const detailImg = countryImg(selectedCountry); const name = text(selectedCountry.name || selectedCountry.title); const sections = selectedCountry.sections || {}; const sectionKeys = Object.keys(sections); const sec = sections[activeSection] || {}; const audioSrc = sec.audio || ''; return <motion.div key={`detail-${selectedCountry.id || name}`} className="timeline-detail" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.4 }}><button type="button" className="back-to-comparison-btn" onClick={() => setSelectedCountry(null)}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg><span>{t.timeline.back}</span></button><div className="detail-panel"><div className="detail-hero">{detailImg ? <img src={detailImg} alt={name} className="detail-hero-img" /> : <div className="detail-hero-fallback" />}<div className="detail-hero-gradient" /><div className="detail-hero-text">{text(currentEra?.era) ? <span className="detail-era-chip">{text(currentEra?.era)}</span> : null}<h3 className="detail-country-title">{name}</h3></div></div><div className="detail-body"><div className="detail-copy">{text(selectedCountry.summary) ? <p className="detail-summary">{text(selectedCountry.summary)}</p> : null}<div className="section-chips" role="tablist" aria-label={t.timeline.title}>{sectionKeys.map((key) => <button key={key} type="button" role="tab" aria-selected={activeSection === key} className={`section-chip ${activeSection === key ? 'active' : ''}`} onClick={() => setActiveSection(key)}>{sectionTitles[key] || key}</button>)}</div><AnimatePresence mode="wait"><motion.p key={activeSection} className="detail-section-text" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>{text(sec.text) || t.timeline.descriptionSoon}</motion.p></AnimatePresence></div><div className="detail-player-col">{audioSrc ? <div className="detail-player-panel"><p className="detail-player-label">{`${sectionTitles[activeSection] || activeSection} · ${t.common.listen}`}</p><CustomAudioPlayer key={`${activeSection}-${audioSrc}`} src={audioSrc} title={`${name} · ${sectionTitles[activeSection] || activeSection}`} /></div> : <div className="detail-player-empty"><span className="detail-player-empty-icon">♪</span><p>{t.common.soonAudio}</p></div>}</div></div></div></motion.div>; })()}</AnimatePresence></div>;
 }

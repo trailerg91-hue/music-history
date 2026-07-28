@@ -1,3 +1,5 @@
+import { pickLocalized } from '../../i18n/localize.js';
+
 /** Built from Figma Untitled.svg combined export (viewBox 976×499). */
 export const MAP_REGIONS = [
   {
@@ -86,11 +88,48 @@ export const MAP_REGIONS = [
   },
 ];
 
+const FOLKLORE_ID_ALIASES = {
+  kakheti: ['kakheti'],
+  'kvemo-kartli': ['kvemo-kartli', 'qvemo-qartli'],
+  mtskheta: ['mtskheta', 'khevsureti'],
+  'shida-kartli': ['shida-kartli', 'shida-qartli'],
+  racha: ['racha'],
+  imereti: ['imereti'],
+  samtskhe: ['samtskhe', 'samtskhe-javakheti'],
+  adjara: ['adjara', 'ajara'],
+  guria: ['guria'],
+  samegrelo: ['samegrelo', 'megrelia'],
+  svaneti: ['svaneti'],
+  abkhazia: ['abkhazia', 'afxazeti', 'abkhazeti'],
+};
+
+const normalize = (value) =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\u10a0-\u10ff]+/g, ' ')
+    .trim();
+
 export function findFolkloreForMapRegion(mapRegion, folkloreList) {
+  const idAliases = FOLKLORE_ID_ALIASES[mapRegion.id] || [mapRegion.id];
+
   return (
     folkloreList.find((item) => {
-      const hay = `${item?.title || ''} ${item?.name || ''} ${item?.tag || ''}`.toLowerCase();
-      return mapRegion.keys.some((k) => hay.includes(k.toLowerCase()));
+      const itemId = normalize(item?.id);
+      if (idAliases.some((alias) => itemId === normalize(alias))) return true;
+
+      const hay = normalize(
+        [
+          pickLocalized(item?.title, 'ka'),
+          pickLocalized(item?.title, 'en'),
+          pickLocalized(item?.name, 'ka'),
+          pickLocalized(item?.name, 'en'),
+          pickLocalized(item?.tag, 'ka'),
+          pickLocalized(item?.tag, 'en'),
+          item?.id,
+        ].join(' ')
+      );
+
+      return mapRegion.keys.some((key) => hay.includes(normalize(key)));
     }) || null
   );
 }

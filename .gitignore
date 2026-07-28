@@ -15,6 +15,10 @@ dist-ssr
 .env.*
 !.env.example
 
+# Backend uploads (keep folder, ignore files)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
