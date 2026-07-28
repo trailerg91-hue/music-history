@@ -233,6 +233,11 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
 });
 
+// Browsers auto-request this when opening the API URL in a tab.
+app.get('/favicon.ico', (_req, res) => {
+  res.status(204).end();
+});
+
 app.get('/api/admin/translation-status', authRequired, loadCurrentUser, requireAdmin, async (req, res) => {
   try {
     res.json(getTranslationStatus());
