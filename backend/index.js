@@ -221,6 +221,18 @@ function verificationResponse({ message, code, delivery }) {
   return payload;
 }
 
+app.get('/', (_req, res) => {
+  res.json({
+    ok: true,
+    service: 'history-of-music-api',
+    health: '/api/health',
+  });
+});
+
+app.get('/api/health', (_req, res) => {
+  res.json({ ok: true });
+});
+
 app.get('/api/admin/translation-status', authRequired, loadCurrentUser, requireAdmin, async (req, res) => {
   try {
     res.json(getTranslationStatus());
