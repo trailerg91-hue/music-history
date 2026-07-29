@@ -18,6 +18,16 @@ export function getAdminUi({ t, isEnglish, isMainAdmin }) {
       ? 'Only the main administrator can delete records.'
       : 'მხოლოდ მთავარ ადმინისტრატორს შეუძლია ჩანაწერების წაშლა!',
     selectedFile: isEnglish ? 'Selected' : 'არჩეულია',
+    studioLabel: isEnglish ? 'Content studio' : 'კონტენტ სტუდია',
+    studioHint: isEnglish
+      ? 'Manage site content from one place.'
+      : 'მართე საიტის კონტენტი ერთი ადგილიდან.',
+    searchPlaceholder: isEnglish ? 'Search…' : 'ძებნა…',
+    addNew: isEnglish ? '+ Add' : '+ დამატება',
+    close: isEnglish ? 'Close' : 'დახურვა',
+    emptySearch: isEnglish ? 'No matches found.' : 'შედეგი ვერ მოიძებნა.',
+    emptyUsers: isEnglish ? 'No users yet.' : 'მომხმარებლები ჯერ არ არის.',
+    folkBadge: isEnglish ? 'Folk' : 'ფოლკლორი',
     usersTitle: isEnglish ? 'Registered users' : 'რეგისტრირებული მომხმარებლები',
     usersHeaders: [
       'ID',

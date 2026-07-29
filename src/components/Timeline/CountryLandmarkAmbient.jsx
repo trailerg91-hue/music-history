@@ -1,20 +1,19 @@
-import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 /** Landmark photos — cinematic, culture-specific (verified URLs) */
 export const LANDMARK_BG = {
   egypt:
-    'https://images.unsplash.com/photo-1568322445389-f64ac2515020?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1539768942893-daf53e448371?auto=format&fit=crop&w=1600&q=80',
   greece:
-    'https://images.unsplash.com/photo-1555993539-1732b0258235?auto=format&fit=crop&w=1600&q=80',
+    'https://upload.wikimedia.org/wikipedia/commons/c/c4/Akropolis_by_Leo_von_Klenze.jpg',
   georgia:
     'https://images.unsplash.com/photo-1565008576549-57569a49371d?auto=format&fit=crop&w=1600&q=80',
   france:
     'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1600&q=80',
   usa:
-    'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1522083165195-3424ed129620?auto=format&fit=crop&w=1600&q=80',
   japan:
-    'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=1600&q=80',
 };
 
 const NEEDLES = {
@@ -46,13 +45,6 @@ export function resolveCountryKey(country) {
 }
 
 export default function CountryLandmarkAmbient({ countryKey }) {
-  useEffect(() => {
-    Object.values(LANDMARK_BG).forEach((src) => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
-
   return (
     <div className="country-landmark-layer" aria-hidden="true">
       <AnimatePresence mode="wait">

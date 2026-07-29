@@ -12,7 +12,8 @@ export const AuthProvider = ({ children }) => {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
-  const [authLoading, setAuthLoading] = useState(() => Boolean(localStorage.getItem(TOKEN_KEY)));
+  // Never block first paint on /auth/me — Render cold starts can take tens of seconds.
+  const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
     if (user) localStorage.setItem('user', JSON.stringify(user));
@@ -55,14 +56,14 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) {
-      setAuthLoading(false);
-      return undefined;
-    }
+    if (!token) return undefined;
+
     let cancelled = false;
-    setAuthLoading(true);
     axios
-      .get(`${AUTH_API}/me`, { headers: withLangHeader({ Authorization: `Bearer ${token}` }) })
+      .get(`${AUTH_API}/me`, {
+        headers: withLangHeader({ Authorization: `Bearer ${token}` }),
+        timeout: 12000,
+      })
       .then(({ data }) => {
         if (cancelled) return;
         if (data?.token) localStorage.setItem(TOKEN_KEY, data.token);
@@ -78,10 +79,8 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem(TOKEN_KEY);
           setUser(null);
         }
-      })
-      .finally(() => {
-        if (!cancelled) setAuthLoading(false);
       });
+
     return () => {
       cancelled = true;
     };

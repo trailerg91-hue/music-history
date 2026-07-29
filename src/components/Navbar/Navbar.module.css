@@ -1,42 +1,62 @@
 .nav {
   position: fixed;
-  top: 18px;
+  top: 14px;
   left: 0;
   width: 100%;
-  padding: 0 24px;
+  padding: 0 20px;
   box-sizing: border-box;
   z-index: 1000;
-  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.38s ease;
-  transform: translateY(0);
-  opacity: 1;
-  will-change: transform, opacity;
-}
-
-.navHidden {
-  transform: translateY(calc(-100% - 10px));
-  opacity: 0;
-  pointer-events: none;
+  transition: top 0.35s ease, padding 0.35s ease;
 }
 
 .navShell {
-  max-width: 1280px;
+  max-width: 1240px;
   margin: 0 auto;
-  min-height: 68px;
-  padding: 10px 16px;
+  min-height: 58px;
+  padding: 8px 14px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: minmax(180px, 1.1fr) auto minmax(180px, 1fr);
   align-items: center;
-  gap: 18px;
-  border-radius: 22px;
+  gap: 14px;
+  border-radius: 18px;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated) 92%, transparent), color-mix(in srgb, var(--bg-secondary) 78%, transparent));
-  border: 1px solid color-mix(in srgb, var(--border-medium) 65%, white 10%);
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-elevated) 88%, transparent),
+      color-mix(in srgb, var(--bg-secondary) 72%, transparent)
+    );
+  border: 1px solid color-mix(in srgb, var(--border-medium) 45%, transparent);
   box-shadow:
-    0 16px 38px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 0 0 1px rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+    0 12px 28px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transition:
+    min-height 0.35s ease,
+    padding 0.35s ease,
+    border-radius 0.35s ease,
+    background 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.navCompact {
+  top: 8px;
+}
+
+.navCompact .navShell {
+  min-height: 50px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+}
+
+.navCompact .logoImage {
+  width: 40px;
+  height: 40px;
+}
+
+.navCompact .logo {
+  font-size: 0.88rem;
 }
 
 .logoWrap {
@@ -47,34 +67,40 @@
   border: none;
   padding: 0;
   cursor: pointer;
+  justify-self: start;
+  min-width: 0;
 }
 
 .logoImage {
-  width: 55px;
-  height: 55px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   flex: 0 0 auto;
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.22));
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+  transition: width 0.35s ease, height 0.35s ease;
 }
 
 .logo {
   color: var(--text-primary);
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: none;
   white-space: nowrap;
   text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: font-size 0.35s ease;
 }
 
 .menu {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   list-style: none;
   margin: 0;
-  padding: 0 10px;
+  padding: 0;
 }
 
 .menuItem {
@@ -86,71 +112,90 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding: 0 15px;
-  border: 1px solid transparent;
+  min-height: 38px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 560;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 6px;
+  height: 2px;
   border-radius: 999px;
   background: transparent;
-  color: var(--text-secondary);
-  font-size: 0.93rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    color 0.25s ease,
-    border-color 0.25s ease,
-    background-color 0.25s ease,
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
+  transform: scaleX(0.35);
+  opacity: 0;
+  transition: background 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
 }
 
 .link:hover {
   color: var(--text-primary);
-  border-color: color-mix(in srgb, var(--border-medium) 50%, white 20%);
-  background: color-mix(in srgb, var(--bg-elevated) 82%, white 18%);
-  transform: translateY(-1px);
+}
+
+.link:hover::after {
+  background: color-mix(in srgb, var(--accent) 45%, transparent);
+  opacity: 1;
+  transform: scaleX(1);
 }
 
 .linkActive {
   color: var(--text-primary);
-  border-color: rgba(245, 158, 11, 0.2);
-  background: rgba(245, 158, 11, 0.12);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 8px 20px rgba(0, 0, 0, 0.16);
+  font-weight: 700;
+}
+
+.linkActive::after {
+  background: #f59e0b;
+  opacity: 1;
+  transform: scaleX(1);
 }
 
 .authButtons {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
+  justify-self: end;
+}
+
+.themeWrap {
+  transform: scale(0.82);
+  transform-origin: center;
 }
 
 .langSwitch,
 .drawerLang {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px;
+  gap: 2px;
+  padding: 3px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-elevated) 78%, white 22%);
-  border: 1px solid color-mix(in srgb, var(--border-medium) 45%, white 18%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--bg-elevated) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-medium) 35%, transparent);
 }
 
 .langBtn {
-  min-width: 42px;
-  min-height: 34px;
-  padding: 0 12px;
+  min-width: 36px;
+  min-height: 28px;
+  padding: 0 9px;
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
 .langBtn:hover {
@@ -159,22 +204,91 @@
 
 .langBtnActive {
   color: var(--text-primary);
-  background: rgba(245, 158, 11, 0.18);
-  border-color: rgba(245, 158, 11, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: rgba(245, 158, 11, 0.16);
 }
 
-.userInfoContainer {
-  display: flex;
+.accountWrap {
+  position: relative;
+}
+
+.accountBtn {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  min-height: 38px;
+  max-width: 160px;
+  padding: 0 10px 0 6px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-medium) 40%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 75%, transparent);
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.userMeta,
-.drawerUserMeta {
+.accountBtn:hover,
+.accountBtnOpen,
+.accountBtnActive {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #111;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.accountBtnLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.accountMenu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 200px;
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--border-medium) 50%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 20;
+  animation: menuIn 0.18s ease;
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.accountMenuHead {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding: 8px 10px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-medium) 40%, transparent);
 }
 
 .userLabel,
@@ -193,6 +307,31 @@
   font-weight: 600;
 }
 
+.accountMenuItem {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  text-align: left;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.accountMenuItem:hover {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--text-primary);
+}
+
+.accountMenuItemActive {
+  color: #f6c66a;
+  background: rgba(245, 158, 11, 0.12);
+}
+
 .authLink {
   min-height: 40px;
   padding: 0 16px;
@@ -203,34 +342,27 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition:
-    background-color 0.25s ease,
-    color 0.25s ease,
-    border-color 0.25s ease,
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
 
 .authLink:hover {
   color: var(--text-primary);
   background: rgba(245, 158, 11, 0.16);
   border-color: rgba(245, 158, 11, 0.26);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.16);
 }
 
 .hamburgerBtn {
   display: none;
   position: absolute;
   top: 50%;
-  right: 24px;
+  right: 20px;
   transform: translateY(-50%);
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--border-medium) 45%, white 18%);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--bg-elevated) 84%, white 16%);
+  border: 1px solid color-mix(in srgb, var(--border-medium) 40%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   align-items: center;
@@ -239,16 +371,14 @@
   gap: 5px;
   cursor: pointer;
   z-index: 1100;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
 }
 
 .hamburgerBtnActive {
-  border-color: rgba(245, 158, 11, 0.18);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+  border-color: rgba(245, 158, 11, 0.25);
 }
 
 .bar {
-  width: 20px;
+  width: 18px;
   height: 2px;
   border-radius: 999px;
   background: #f8be53;
@@ -298,7 +428,7 @@
   flex-direction: column;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated) 96%, white 4%), color-mix(in srgb, var(--bg-secondary) 96%, transparent));
-  border-left: 1px solid color-mix(in srgb, var(--border-medium) 55%, white 18%);
+  border-left: 1px solid color-mix(in srgb, var(--border-medium) 55%, transparent);
   box-shadow: -20px 0 50px rgba(0, 0, 0, 0.45);
   transform: translateX(105%);
   transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
@@ -314,7 +444,7 @@
   align-items: flex-start;
   padding-bottom: 18px;
   margin-bottom: 20px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-medium) 45%, white 18%);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-medium) 45%, transparent);
 }
 
 .drawerEyebrow {
@@ -367,15 +497,15 @@
   justify-content: space-between;
   gap: 12px;
   padding: 0 14px;
-  border: 1px solid color-mix(in srgb, var(--border-medium) 40%, white 18%);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--bg-elevated) 86%, white 14%);
+  border: 1px solid color-mix(in srgb, var(--border-medium) 35%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
   color: var(--text-primary);
   text-align: left;
   font-size: 0.98rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 .drawerLink:hover {
@@ -385,9 +515,8 @@
 
 .drawerLinkActive {
   color: var(--text-primary);
-  background: rgba(245, 158, 11, 0.16);
-  border-color: rgba(245, 158, 11, 0.2);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.22);
 }
 
 .drawerLinkDot {
@@ -402,55 +531,53 @@
 .drawerAuth {
   margin-top: auto;
   padding-top: 18px;
-  border-top: 1px solid color-mix(in srgb, var(--border-medium) 45%, white 18%);
+  border-top: 1px solid color-mix(in srgb, var(--border-medium) 45%, transparent);
 }
 
 .drawerUserSection {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+}
+
+.drawerUserMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .drawerAuthLink {
   width: 100%;
   justify-content: center;
+  display: inline-flex;
+  align-items: center;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1100px) {
+  .accountBtnLabel {
+    display: none;
+  }
+
+  .accountBtn {
+    padding: 0 6px;
+    max-width: none;
+  }
+
   .logo {
-    font-size: 0.92rem;
-    letter-spacing: 0.12em;
-  }
-
-  .menu {
-    gap: 4px;
-    padding: 0 4px;
-  }
-
-  .link {
-    padding: 0 12px;
-    font-size: 0.92rem;
-  }
-
-  .authButtons {
-    gap: 10px;
+    font-size: 0.94rem;
   }
 }
 
 @media (max-width: 880px) {
   .nav {
-    top: 12px;
-    padding: 0 14px;
+    top: 10px;
+    padding: 0 12px;
   }
 
   .navShell {
-    min-height: 64px;
+    min-height: 56px;
     grid-template-columns: 1fr;
-    padding: 12px 68px 12px 16px;
-    border-color: rgba(255, 255, 255, 0.05);
-    box-shadow:
-      0 10px 24px rgba(0, 0, 0, 0.18),
-      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    padding: 10px 62px 10px 14px;
   }
 
   .menu,
@@ -460,13 +587,7 @@
 
   .hamburgerBtn {
     display: inline-flex;
-    right: 18px;
-    width: 42px;
-    height: 42px;
-    border-color: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.035);
-    box-shadow: none;
+    right: 16px;
   }
 
   .logo {
@@ -476,38 +597,44 @@
 
 @media (max-width: 480px) {
   .nav {
-    top: 10px;
+    top: 8px;
     padding: 0 10px;
   }
 
   .navShell {
-    min-height: 60px;
-    padding: 10px 62px 10px 14px;
-    border-radius: 20px;
-  }
-
-  .hamburgerBtn {
-    right: 14px;
-    width: 40px;
-    height: 40px;
+    min-height: 52px;
+    padding: 8px 58px 8px 12px;
+    border-radius: 16px;
   }
 
   .logoImage {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
   }
 
   .logo {
     font-size: 0.82rem;
-    letter-spacing: 0.1em;
   }
 
-  .drawerControls {
-    gap: 10px;
+  .hamburgerBtn {
+    right: 12px;
+    width: 38px;
+    height: 38px;
   }
 
   .drawerLang {
     flex: 1 1 auto;
     justify-content: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav,
+  .navShell,
+  .logo,
+  .logoImage,
+  .accountMenu {
+    transition: none;
+    animation: none;
   }
 }

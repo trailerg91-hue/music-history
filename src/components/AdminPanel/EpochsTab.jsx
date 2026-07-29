@@ -1,7 +1,58 @@
+import { useMemo, useState } from 'react';
 import { pickLocalized } from '../../i18n/localize.js';
 import styles from './AdminPanel.module.css';
-import { KaField, MediaField, DataTable } from './AdminFields.jsx';
-import { EPOCHS_API, TABLE_GAP } from './adminConstants.js';
+import {
+  KaField,
+  MediaField,
+  WorkspaceHeader,
+  GalleryGrid,
+  ContentCard,
+  AddCard,
+  EmptyState,
+  FormDrawer,
+} from './AdminFields.jsx';
+import { EPOCHS_API } from './adminConstants.js';
+import { LANDMARK_BG, resolveCountryKey } from '../Timeline/CountryLandmarkAmbient.jsx';
+
+/** Curated duo pairs — warm tones that blend on the diagonal card */
+const ERA_PAIR_IMAGES = {
+  ancient: [
+    'https://images.unsplash.com/photo-1539768942893-daf53e448371?auto=format&fit=crop&w=1200&q=80',
+    'https://upload.wikimedia.org/wikipedia/commons/c/c4/Akropolis_by_Leo_von_Klenze.jpg',
+  ],
+  modern: [
+    'https://images.unsplash.com/photo-1522083165195-3424ed129620?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=1200&q=80',
+  ],
+};
+
+/** Fallbacks when era has no curated pair */
+const TIMELINE_FALLBACK = {
+  greece: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Akropolis_by_Leo_von_Klenze.jpg',
+  usa: 'https://images.unsplash.com/photo-1522083165195-3424ed129620?auto=format&fit=crop&w=1200&q=80',
+  japan: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=1200&q=80',
+  georgia: 'https://cdn.tvpirveli.ge/w/2504/43/71/79/360443be686947a6b7ec1f1cbe8e77b3/shemomkvani-turizmi.png',
+  france: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80',
+  egypt: 'https://images.unsplash.com/photo-1539768942893-daf53e448371?auto=format&fit=crop&w=1200&q=80',
+};
+
+function countryImage(country) {
+  if (!country) return '';
+  const direct = country.image || country.img || country.imageUrl;
+  if (direct) return direct;
+  const key = resolveCountryKey(country) || String(country.id || '').toLowerCase();
+  return LANDMARK_BG[key] || TIMELINE_FALLBACK[key] || '';
+}
+
+function epochImages(item) {
+  const eraId = String(item.id || '').toLowerCase();
+  if (ERA_PAIR_IMAGES[eraId]) return ERA_PAIR_IMAGES[eraId];
+
+  const fromCountries = (item.countries || []).map(countryImage).filter(Boolean);
+  if (fromCountries.length) return fromCountries.slice(0, 2);
+  const single = item.image || item.imageUrl || item.img || '';
+  return single ? [single] : [];
+}
 
 export default function EpochsTab({
   ui,
@@ -15,12 +66,75 @@ export default function EpochsTab({
   onSubmit,
   onDelete,
 }) {
+  const [search, setSearch] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return epochs;
+    return epochs.filter((item) => {
+      const era = pickLocalized(item.era, lang) || '';
+      const years = pickLocalized(item.yearRange, lang) || '';
+      const countries = (item.countries || []).map((c) => pickLocalized(c.name, lang)).join(' ');
+      return `${era} ${years} ${countries}`.toLowerCase().includes(q);
+    });
+  }, [epochs, search, lang]);
+
+  const handleSubmit = async (e) => {
+    const ok = await onSubmit(e);
+    if (ok) setDrawerOpen(false);
+  };
+
   return (
     <div className={styles.sectionStack}>
-      <div className={styles.formCard}>
-        <h3>{ui.addEpoch}</h3>
-        <p className={translationHintClass}>{translationHint}</p>
-        <form onSubmit={onSubmit} className={styles.addForm}>
+      <WorkspaceHeader
+        title={ui.existingEras}
+        count={epochs.length}
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder={ui.searchPlaceholder}
+        addLabel={ui.addNew}
+        onAdd={() => setDrawerOpen(true)}
+      />
+
+      {filtered.length === 0 && !search ? (
+        <div className={styles.galleryGrid}>
+          <AddCard label={ui.addEpoch} onClick={() => setDrawerOpen(true)} />
+        </div>
+      ) : filtered.length === 0 ? (
+        <EmptyState text={ui.emptySearch} />
+      ) : (
+        <GalleryGrid>
+          <AddCard label={ui.addEpoch} onClick={() => setDrawerOpen(true)} />
+          {filtered.map((item) => {
+            const title = pickLocalized(item.era, lang);
+            const years = pickLocalized(item.yearRange, lang);
+            const countries = item.countries?.length
+              ? item.countries.map((c) => pickLocalized(c.name, lang)).join(', ')
+              : ui.noCountries;
+            return (
+              <ContentCard
+                key={item._id || item.id}
+                images={epochImages(item)}
+                title={title}
+                meta={`${years || '—'} · ${countries}`}
+                onDelete={isMainAdmin ? () => onDelete(EPOCHS_API, item._id || item.id) : undefined}
+                deleteLabel={ui.delete}
+              />
+            );
+          })}
+        </GalleryGrid>
+      )}
+
+      <FormDrawer
+        open={drawerOpen}
+        title={ui.addEpoch}
+        hint={translationHint}
+        hintClass={translationHintClass}
+        onClose={() => setDrawerOpen(false)}
+        closeLabel={ui.close}
+      >
+        <form onSubmit={handleSubmit} className={styles.addForm}>
           <KaField label={ui.eraLabel} base="era" form={epochForm} setForm={setEpochForm} required />
           <KaField label={ui.yearRangeLabel} base="yearRange" form={epochForm} setForm={setEpochForm} required />
           <KaField label={ui.eraDescriptionLabel} base="description" form={epochForm} setForm={setEpochForm} textarea />
@@ -68,34 +182,7 @@ export default function EpochsTab({
             {ui.addEraBtn}
           </button>
         </form>
-      </div>
-
-      <DataTable
-        title={ui.existingEras}
-        style={TABLE_GAP}
-        headers={ui.erasHeaders}
-        rows={epochs.map((item) => (
-          <tr key={item._id || item.id}>
-            <td>{pickLocalized(item.era, lang)}</td>
-            <td>{pickLocalized(item.yearRange, lang)}</td>
-            <td>
-              {item.countries?.length
-                ? item.countries.map((c) => pickLocalized(c.name, lang)).join(', ')
-                : ui.noCountries}
-            </td>
-            {isMainAdmin && (
-              <td>
-                <button
-                  onClick={() => onDelete(EPOCHS_API, item._id || item.id)}
-                  className={styles.deleteBtn}
-                >
-                  {ui.delete}
-                </button>
-              </td>
-            )}
-          </tr>
-        ))}
-      />
+      </FormDrawer>
     </div>
   );
 }

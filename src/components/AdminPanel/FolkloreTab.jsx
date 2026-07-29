@@ -1,7 +1,17 @@
+import { useMemo, useState } from 'react';
 import { pickLocalized } from '../../i18n/localize.js';
 import styles from './AdminPanel.module.css';
-import { KaField, MediaField, DataTable } from './AdminFields.jsx';
-import { FOLK_API, TABLE_GAP } from './adminConstants.js';
+import {
+  KaField,
+  MediaField,
+  WorkspaceHeader,
+  GalleryGrid,
+  ContentCard,
+  AddCard,
+  EmptyState,
+  FormDrawer,
+} from './AdminFields.jsx';
+import { FOLK_API } from './adminConstants.js';
 
 export default function FolkloreTab({
   ui,
@@ -15,12 +25,69 @@ export default function FolkloreTab({
   onSubmit,
   onDelete,
 }) {
+  const [search, setSearch] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return folkList;
+    return folkList.filter((item) => {
+      const title = pickLocalized(item.title, lang) || '';
+      const tag = pickLocalized(item.tag, lang) || '';
+      const description = pickLocalized(item.description, lang) || '';
+      return `${title} ${tag} ${description} ${item.id || ''}`.toLowerCase().includes(q);
+    });
+  }, [folkList, search, lang]);
+
+  const handleSubmit = async (e) => {
+    const ok = await onSubmit(e);
+    if (ok) setDrawerOpen(false);
+  };
+
   return (
     <div className={styles.sectionStack}>
-      <div className={styles.formCard}>
-        <h3>{ui.addFolklore}</h3>
-        <p className={translationHintClass}>{translationHint}</p>
-        <form onSubmit={onSubmit} className={styles.addForm}>
+      <WorkspaceHeader
+        title={ui.folkloreRegionsTitle}
+        count={folkList.length}
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder={ui.searchPlaceholder}
+        addLabel={ui.addNew}
+        onAdd={() => setDrawerOpen(true)}
+      />
+
+      {filtered.length === 0 && !search ? (
+        <GalleryGrid>
+          <AddCard label={ui.addFolklore} onClick={() => setDrawerOpen(true)} />
+        </GalleryGrid>
+      ) : filtered.length === 0 ? (
+        <EmptyState text={ui.emptySearch} />
+      ) : (
+        <GalleryGrid>
+          <AddCard label={ui.addFolklore} onClick={() => setDrawerOpen(true)} />
+          {filtered.map((item) => (
+            <ContentCard
+              key={item._id || item.id}
+              image={item.imageUrl || item.image || item.img || ''}
+              title={pickLocalized(item.title, lang)}
+              meta={pickLocalized(item.tag, lang)}
+              badge={item.id}
+              onDelete={isMainAdmin ? () => onDelete(FOLK_API, item._id || item.id) : undefined}
+              deleteLabel={ui.delete}
+            />
+          ))}
+        </GalleryGrid>
+      )}
+
+      <FormDrawer
+        open={drawerOpen}
+        title={ui.addFolklore}
+        hint={translationHint}
+        hintClass={translationHintClass}
+        onClose={() => setDrawerOpen(false)}
+        closeLabel={ui.close}
+      >
+        <form onSubmit={handleSubmit} className={styles.addForm}>
           <input
             type="text"
             placeholder="ID (მაგ: racha)"
@@ -59,39 +126,7 @@ export default function FolkloreTab({
             {ui.addFolkloreBtn}
           </button>
         </form>
-      </div>
-
-      <DataTable
-        title={ui.folkloreRegionsTitle}
-        style={TABLE_GAP}
-        headers={ui.folkloreHeaders}
-        rows={folkList.map((item) => (
-          <tr key={item._id || item.id}>
-            <td>{pickLocalized(item.title, lang)}</td>
-            <td>{pickLocalized(item.tag, lang)}</td>
-            <td
-              style={{
-                maxWidth: 300,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {pickLocalized(item.description, lang)}
-            </td>
-            {isMainAdmin && (
-              <td>
-                <button
-                  onClick={() => onDelete(FOLK_API, item._id || item.id)}
-                  className={styles.deleteBtn}
-                >
-                  {ui.delete}
-                </button>
-              </td>
-            )}
-          </tr>
-        ))}
-      />
+      </FormDrawer>
     </div>
   );
 }

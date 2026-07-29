@@ -8,11 +8,11 @@ import './Timeline.css';
 
 const IMG = {
   greece: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Akropolis_by_Leo_von_Klenze.jpg',
-  usa: 'https://aviatickets.ge/wp-content/uploads/2019/12/Overlooking-DC.jpg',
-  japan: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAaQIwTZ65dNvrdXKiIF0cGYp1iIzv7HXtmKU9ajBhOw&s=10',
+  usa: 'https://images.unsplash.com/photo-1522083165195-3424ed129620?auto=format&fit=crop&w=1600&q=80',
+  japan: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=1600&q=80',
   georgia: 'https://cdn.tvpirveli.ge/w/2504/43/71/79/360443be686947a6b7ec1f1cbe8e77b3/shemomkvani-turizmi.png',
-  france: 'https://api.tabula.ge/files/styles/news_thumb_lg/public/photos/2018/11/v2exl2nje6lsczqgxklf2mh1qjkhmfu-xlarge.jpeg.jpg?itok=uDTo-0jx',
-  egypt: 'https://mariammeritamen.wordpress.com/wp-content/uploads/2014/08/ancient-egypt-pyramids-398605.jpg',
+  france: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1600&q=80',
+  egypt: 'https://images.unsplash.com/photo-1539768942893-daf53e448371?auto=format&fit=crop&w=1600&q=80',
 };
 const aliases = [
   [['საბერძნეთი', 'ძველი საბერძნეთი', 'Greece'], 'greece'],

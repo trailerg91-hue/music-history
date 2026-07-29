@@ -26,7 +26,16 @@ export const AUTH_API = `${API_BASE}/auth`;
 export const ADMIN_USERS_API = `${API_BASE}/admin/users`;
 
 export async function apiGet(path, headers = {}) {
-  const res = await fetch(`${API_BASE}${path}`, { headers: withLangHeader(headers) });
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-  return res.json();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      headers: withLangHeader(headers),
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+    return res.json();
+  } finally {
+    clearTimeout(timer);
+  }
 }
