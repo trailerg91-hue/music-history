@@ -16,7 +16,10 @@ export default function CustomAudioPlayer({ src, title = '' }) {
   const [current, setCurrent] = useState('0:00');
   const [duration, setDuration] = useState('0:00');
 
-  const url = `${import.meta.env.BASE_URL}${(src || '').replace(/^\//, '')}`;
+  const raw = String(src || '').trim();
+  const url = /^https?:\/\//i.test(raw)
+    ? raw
+    : `${import.meta.env.BASE_URL}${raw.replace(/^\//, '')}`;
 
   useEffect(() => () => session?.report?.({ id, playing: false }), [id, session]);
 

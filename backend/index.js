@@ -39,7 +39,11 @@ app.use(
 );
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim()) : true,
+    origin: (() => {
+      const raw = process.env.CORS_ORIGIN || process.env.FRONTEND_URL || '';
+      if (!raw) return true;
+      return raw.split(',').map((s) => s.trim()).filter(Boolean);
+    })(),
     credentials: true,
   })
 );
@@ -135,8 +139,7 @@ const upload = multer({
       return cb(null, true);
     }
 
-    // instruments uses single('image') -> fieldname is still "image"
-    cb(null, true);
+    return cb(new Error('Unexpected field'));
   },
 });
 

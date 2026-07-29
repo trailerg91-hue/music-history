@@ -36,7 +36,8 @@ function activeProvider() {
 }
 
 export function hasTranslationClient() {
-  return Boolean(activeProvider());
+  const provider = activeProvider();
+  return provider === 'gemini' || provider === 'openai';
 }
 
 export function getTranslationStatus() {

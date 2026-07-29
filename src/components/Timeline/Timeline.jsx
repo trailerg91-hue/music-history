@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CustomAudioPlayer from '../CustomAudioPlayer/CustomAudioPlayer.jsx';
 import { useLanguage } from '../../i18n/LanguageContext.jsx';
@@ -15,10 +15,19 @@ export default function Timeline({ data }) {
   const { t, lang } = useLanguage();
   const sectionTitles = t.timeline.sections;
   const sorted = data ? [...data].sort((a, b) => (eraOrder[a.id] || 99) - (eraOrder[b.id] || 99)) : [];
-  const [activeEraId, setActiveEraId] = useState(idOf(sorted[0] || {}, 0));
+  const [activeEraId, setActiveEraId] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [activeSection, setActiveSection] = useState('celebration');
-  const currentEra = sorted.find((item) => idOf(item) === activeEraId) || sorted[0];
+
+  useEffect(() => {
+    if (!data?.length) return;
+    const ids = [...data]
+      .sort((a, b) => (eraOrder[a.id] || 99) - (eraOrder[b.id] || 99))
+      .map((item, i) => idOf(item, i));
+    setActiveEraId((prev) => (ids.includes(prev) ? prev : ids[0]));
+  }, [data]);
+
+  const currentEra = sorted.find((item, i) => idOf(item, i) === activeEraId) || sorted[0];
   const text = (v) => pickLocalized(v, lang);
   const countryImg = (c) => c.image || c.img || c.imageUrl || fallbackImages[text(c.name) || text(c.title)] || fallbackImages[c.name] || fallbackImages[c.title];
   const selectEra = (eraId) => { setActiveEraId(eraId); setSelectedCountry(null); setActiveSection('celebration'); };

@@ -1,12 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '../components/Auth/authContext.jsx';
-import { API_BASE } from '../api.js';
+import { apiGet } from '../api.js';
 
 export function useAppNavigation() {
   const { user, logout, authLoading } = useAuth();
-
   const [currentPage, setCurrentPage] = useState(() => localStorage.getItem('currentPage') || 'main');
-
   const [selectedRegion, setSelectedRegion] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const folkRef = useRef(null);
@@ -27,8 +25,7 @@ export function useAppNavigation() {
   }, [user, authLoading, currentPage]);
 
   useEffect(() => {
-    fetch(`${API_BASE}/history`)
-      .then((r) => r.json())
+    apiGet('/history')
       .then((d) => setHistoryData(Array.isArray(d) ? d : []))
       .catch(() => setHistoryData([]));
   }, []);
@@ -41,7 +38,6 @@ export function useAppNavigation() {
 
   const handleLogout = useCallback(() => {
     logout?.();
-    localStorage.removeItem('token');
     localStorage.removeItem('currentPage');
     setCurrentPage('main');
   }, [logout]);

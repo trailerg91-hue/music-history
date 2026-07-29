@@ -13,21 +13,13 @@ const TRANSLATION_STATUS_API = `${API_BASE}/admin/translation-status`;
 
 const emptyEpoch = {
   eraKa: '',
-  eraEn: '',
   yearRangeKa: '',
-  yearRangeEn: '',
   descriptionKa: '',
-  descriptionEn: '',
   countryNameKa: '',
-  countryNameEn: '',
   countryDescriptionKa: '',
-  countryDescriptionEn: '',
   celebrationTextKa: '',
-  celebrationTextEn: '',
   warTextKa: '',
-  warTextEn: '',
   mourningTextKa: '',
-  mourningTextEn: '',
   imageMode: 'file',
   imageFile: null,
   imageUrl: '',
@@ -38,14 +30,10 @@ const emptyEpoch = {
 
 const emptyInstrument = {
   nameKa: '',
-  nameEn: '',
   category: 'string',
   typeKa: 'სიმებიანი',
-  typeEn: 'String',
   categoryLabelKa: 'სიმებიანი',
-  categoryLabelEn: 'String',
   descriptionKa: '',
-  descriptionEn: '',
   imageMode: 'file',
   imageFile: null,
   imageUrl: '',
@@ -55,11 +43,8 @@ const emptyInstrument = {
 const emptyFolk = {
   id: '',
   titleKa: '',
-  titleEn: '',
   tagKa: '',
-  tagEn: '',
   descriptionKa: '',
-  descriptionEn: '',
   imageMode: 'file',
   imageFile: null,
   imageUrl: '',
@@ -83,7 +68,7 @@ function appendLocalizedFields(formData, form, key) {
   formData.append(`${key}En`, form[`${key}En`] || '');
 }
 
-function BilingualFields({ label, base, form, setForm, required = false, textarea = false }) {
+function KaField({ label, base, form, setForm, required = false, textarea = false }) {
   const Input = textarea ? 'textarea' : 'input';
   const extra = textarea ? {} : { type: 'text' };
   return (
@@ -92,7 +77,7 @@ function BilingualFields({ label, base, form, setForm, required = false, textare
       <Input
         {...extra}
         placeholder={label}
-        value={form[`${base}Ka`]}
+        value={form[`${base}Ka`] || ''}
         onChange={(e) => setForm({ ...form, [`${base}Ka`]: e.target.value })}
         required={required}
       />
@@ -506,14 +491,14 @@ export default function AdminPanel({ setCurrentPage }) {
             <h3>{ui.addEpoch}</h3>
             <p className={translationHintClass}>{translationHint}</p>
             <form onSubmit={handleAddEpoch} className={styles.addForm}>
-              <BilingualFields label={ui.eraLabel} base="era" form={epochForm} setForm={setEpochForm} required />
-              <BilingualFields label={ui.yearRangeLabel} base="yearRange" form={epochForm} setForm={setEpochForm} required />
-              <BilingualFields label={ui.eraDescriptionLabel} base="description" form={epochForm} setForm={setEpochForm} textarea />
-              <BilingualFields label={ui.countryNameLabel} base="countryName" form={epochForm} setForm={setEpochForm} />
-              <BilingualFields label={ui.countrySummaryLabel} base="countryDescription" form={epochForm} setForm={setEpochForm} textarea />
-              <BilingualFields label={ui.celebrationLabel} base="celebrationText" form={epochForm} setForm={setEpochForm} textarea />
-              <BilingualFields label={ui.warLabel} base="warText" form={epochForm} setForm={setEpochForm} textarea />
-              <BilingualFields label={ui.mourningLabel} base="mourningText" form={epochForm} setForm={setEpochForm} textarea />
+              <KaField label={ui.eraLabel} base="era" form={epochForm} setForm={setEpochForm} required />
+              <KaField label={ui.yearRangeLabel} base="yearRange" form={epochForm} setForm={setEpochForm} required />
+              <KaField label={ui.eraDescriptionLabel} base="description" form={epochForm} setForm={setEpochForm} textarea />
+              <KaField label={ui.countryNameLabel} base="countryName" form={epochForm} setForm={setEpochForm} />
+              <KaField label={ui.countrySummaryLabel} base="countryDescription" form={epochForm} setForm={setEpochForm} textarea />
+              <KaField label={ui.celebrationLabel} base="celebrationText" form={epochForm} setForm={setEpochForm} textarea />
+              <KaField label={ui.warLabel} base="warText" form={epochForm} setForm={setEpochForm} textarea />
+              <KaField label={ui.mourningLabel} base="mourningText" form={epochForm} setForm={setEpochForm} textarea />
 
               <MediaField
                 label={ui.eraImage}
@@ -590,7 +575,7 @@ export default function AdminPanel({ setCurrentPage }) {
             <h3>{ui.addInstrument}</h3>
             <p className={translationHintClass}>{translationHint}</p>
             <form onSubmit={handleAddInstrument} className={styles.addForm}>
-              <BilingualFields label={ui.instrumentNameLabel} base="name" form={instrumentForm} setForm={setInstrumentForm} required />
+              <KaField label={ui.instrumentNameLabel} base="name" form={instrumentForm} setForm={setInstrumentForm} required />
 
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>{ui.chooseCategory}</label>
@@ -602,9 +587,7 @@ export default function AdminPanel({ setCurrentPage }) {
                       ...instrumentForm,
                       category,
                       typeKa: CATEGORY_MAP[category] || 'სიმებიანი',
-                      typeEn: category[0].toUpperCase() + category.slice(1),
                       categoryLabelKa: CATEGORY_MAP[category] || 'სიმებიანი',
-                      categoryLabelEn: category[0].toUpperCase() + category.slice(1),
                     });
                   }}
                   className={styles.selectInput}
@@ -616,8 +599,8 @@ export default function AdminPanel({ setCurrentPage }) {
                 </select>
               </div>
 
-              <BilingualFields label={ui.typeLabel} base="type" form={instrumentForm} setForm={setInstrumentForm} required />
-              <BilingualFields label={ui.categoryLabel} base="categoryLabel" form={instrumentForm} setForm={setInstrumentForm} />
+              <KaField label={ui.typeLabel} base="type" form={instrumentForm} setForm={setInstrumentForm} required />
+              <KaField label={ui.categoryLabel} base="categoryLabel" form={instrumentForm} setForm={setInstrumentForm} />
 
               <MediaField
                 label={ui.instrumentImage}
@@ -645,7 +628,7 @@ export default function AdminPanel({ setCurrentPage }) {
                 {ui.folkInstrumentQuestion}
               </label>
 
-              <BilingualFields label={ui.descriptionLabel} base="description" form={instrumentForm} setForm={setInstrumentForm} textarea required />
+              <KaField label={ui.descriptionLabel} base="description" form={instrumentForm} setForm={setInstrumentForm} textarea required />
               <button type="submit" className={styles.submitBtn}>
                 {ui.addInstrumentBtn}
               </button>
@@ -692,8 +675,8 @@ export default function AdminPanel({ setCurrentPage }) {
                 onChange={(e) => setFolkForm({ ...folkForm, id: e.target.value })}
                 required
               />
-              <BilingualFields label={ui.folkloreTitleLabel} base="title" form={folkForm} setForm={setFolkForm} required />
-              <BilingualFields label={ui.folkloreTagLabel} base="tag" form={folkForm} setForm={setFolkForm} required />
+              <KaField label={ui.folkloreTitleLabel} base="title" form={folkForm} setForm={setFolkForm} required />
+              <KaField label={ui.folkloreTagLabel} base="tag" form={folkForm} setForm={setFolkForm} required />
 
               <MediaField
                 label={ui.folkloreImage}
@@ -718,7 +701,7 @@ export default function AdminPanel({ setCurrentPage }) {
                 value={folkForm.youtubeUrl}
                 onChange={(e) => setFolkForm({ ...folkForm, youtubeUrl: e.target.value })}
               />
-              <BilingualFields label={ui.descriptionLabel} base="description" form={folkForm} setForm={setFolkForm} textarea required />
+              <KaField label={ui.descriptionLabel} base="description" form={folkForm} setForm={setFolkForm} textarea required />
               <button type="submit" className={styles.submitBtn}>
                 {ui.addFolkloreBtn}
               </button>

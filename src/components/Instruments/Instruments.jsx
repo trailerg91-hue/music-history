@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { API_BASE } from '../../api.js';
+import { apiGet } from '../../api.js';
 import InstrumentDetail from './InstrumentDetail.jsx';
 import { useLanguage } from '../../i18n/LanguageContext.jsx';
 import { pickLocalized } from '../../i18n/localize.js';
@@ -21,7 +21,7 @@ export default function Instruments() {
   const [favorites, setFavorites] = useState(() => { try { return JSON.parse(localStorage.getItem('favoriteInstruments') || '[]'); } catch { return []; } });
 
   useEffect(() => { localStorage.setItem('favoriteInstruments', JSON.stringify(favorites)); if (!favorites.length) setShowFavoritesOnly(false); }, [favorites]);
-  useEffect(() => { fetch(`${API_BASE}/instruments`).then((r) => r.json()).then((d) => { setInstruments(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false)); }, []);
+  useEffect(() => { apiGet('/instruments').then((d) => { setInstruments(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false)); }, []);
 
   const types = [...new Set(instruments.map((i) => pickLocalized(i.type, lang)).filter(Boolean))];
   const filtered = instruments.filter((item) => {

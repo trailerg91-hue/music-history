@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { API_BASE } from '../../api.js';
+import { apiGet } from '../../api.js';
 import { MAP_REGIONS, findFolkloreForMapRegion } from './mapRegions.js';
 import { REGION_PATHS } from './regionPaths.js';
 import { useLanguage } from '../../i18n/LanguageContext.jsx';
@@ -18,10 +18,10 @@ export function GeorgianFolk({ onSelectRegion }) {
   const leaveTimer = useRef(null);
   const byId = Object.fromEntries(MAP_REGIONS.map((r) => [r.id, r]));
 
-  useEffect(() => { fetch(`${API_BASE}/folklore`).then((r) => r.json()).then((d) => setRegions(Array.isArray(d) ? d : [])).catch(() => {}); }, []);
+  useEffect(() => { apiGet('/folklore').then((d) => setRegions(Array.isArray(d) ? d : [])).catch(() => {}); }, []);
   useEffect(() => () => clearTimeout(leaveTimer.current), []);
   const clearLeave = () => { clearTimeout(leaveTimer.current); leaveTimer.current = null; };
-  const regionLabel = (id) => pickLocalized(byId[id]?.labelText, lang) || byId[id]?.label || '';
+  const regionLabel = (id) => byId[id]?.label || '';
   const activate = (id) => {
     clearLeave(); setActiveId(id);
     const map = byId[id]; const path = REGION_PATHS.find((p) => p.id === id); const folk = map ? findFolkloreForMapRegion(map, regions) : null;

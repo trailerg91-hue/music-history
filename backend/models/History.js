@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { LocalizedStringSchema, localizedString } from './localized.js';
+import { localizedString } from './localized.js';
 
 const HistorySectionSchema = new mongoose.Schema({
   text: localizedString(),
