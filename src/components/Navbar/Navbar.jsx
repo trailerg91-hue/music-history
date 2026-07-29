@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext.jsx';
+import ThemeToggle from '../ThemeToggle/ThemeToggle.jsx';
 import styles from './Navbar.module.css';
 
 export default function Navbar({ currentPage, setCurrentPage, user, handleLogout, scrollToSection, folkRef, worldRef, epochRef }) {
@@ -123,6 +124,7 @@ export default function Navbar({ currentPage, setCurrentPage, user, handleLogout
         </ul>
 
         <div className={styles.authButtons}>
+          <ThemeToggle />
           <LanguageSwitch />
           <AuthBlock />
         </div>

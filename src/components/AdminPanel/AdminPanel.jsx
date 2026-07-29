@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../Auth/authContext.jsx';
 import { ADMIN_USERS_API } from '../../api.js';
 import { useLanguage } from '../../i18n/LanguageContext.jsx';
+import { useToast } from '../Toast/Toast.jsx';
 import styles from './AdminPanel.module.css';
 import {
   EPOCHS_API,
@@ -30,6 +31,7 @@ export default function AdminPanel({ setCurrentPage }) {
     currentUser?.isAdmin === true || currentUser?.email === 'saba.kapanadze22@gmail.com';
   const ui = getAdminUi({ t, isEnglish, isMainAdmin });
 
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [epochs, setEpochs] = useState([]);
@@ -71,7 +73,7 @@ export default function AdminPanel({ setCurrentPage }) {
 
   const requireMainAdmin = (msg) => {
     if (isMainAdmin) return true;
-    alert(msg);
+    toast?.show(msg, 'error');
     return false;
   };
 
@@ -81,8 +83,9 @@ export default function AdminPanel({ setCurrentPage }) {
     try {
       await axios.put(`${ADMIN_USERS_API}/${targetUser.id}`, { isAdmin: willBeAdmin }, { headers: authHeaders() });
       setUsers((prev) => prev.map((u) => (u.id === targetUser.id ? { ...u, isAdmin: willBeAdmin } : u)));
+      toast?.show(willBeAdmin ? 'Admin role granted' : 'Admin role revoked');
     } catch {
-      alert(ui.userStatusFailed);
+      toast?.show(ui.userStatusFailed, 'error');
     }
   };
 
@@ -92,7 +95,9 @@ export default function AdminPanel({ setCurrentPage }) {
       const res = await fetch(`${api}/${id}`, { method: 'DELETE', headers: authHeaders() });
       if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
       setter((prev) => prev.filter((item) => item._id !== id && item.id !== id));
+      toast?.show('Deleted successfully');
     } catch (error) {
+      toast?.show('Delete failed', 'error');
       console.error(error);
     }
   };
@@ -112,7 +117,9 @@ export default function AdminPanel({ setCurrentPage }) {
       const res = await fetch(api, { method: 'POST', body: formData, headers: authHeaders() });
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
       onSuccess(await res.json());
+      toast?.show('Saved successfully');
     } catch (error) {
+      toast?.show('Save failed', 'error');
       console.error(error);
     }
   };

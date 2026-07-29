@@ -23,7 +23,12 @@ export function RegionDetail({ region, onClose }) {
           <div className={styles.heroText}>{tag ? <span className={styles.tag}>{tag}</span> : null}<h2 className={styles.title}>{title}</h2></div>
         </div>
         <div className={styles.body}>
-          <div className={styles.copyCol}><p className={styles.description}>{description}</p><p className={styles.metaHint}>{t.folk.regionMeta}</p></div>
+          <div className={styles.copyCol}><p className={styles.description}>{description}</p><p className={styles.metaHint}>{t.folk.regionMeta}</p><button type="button" className={styles.shareBtn} onClick={() => {
+            const url = window.location.href;
+            const text = `${title} — ${t.navbar.logo}`;
+            if (navigator.share) navigator.share({ title: text, url }).catch(() => {});
+            else navigator.clipboard?.writeText(url);
+          }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button></div>
           <div className={styles.playerCol}>{embed ? <div className={styles.playerWrapper}><iframe src={embed} title={`${title} — YouTube`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div> : <div className={styles.playerEmpty}>{t.common.soonVideo}</div>}</div>
         </div>
       </div>

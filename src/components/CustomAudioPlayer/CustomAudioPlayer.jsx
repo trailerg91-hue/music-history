@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect, useId } from 'react';
+import { useState, useRef, useEffect, useId, useCallback } from 'react';
 import './CustomAudioPlayer.css';
 import { useAudioSession } from '../AudioSession/audioSession.jsx';
 import { useLanguage } from '../../i18n/LanguageContext.jsx';
 
 const pad = (n) => (n < 10 ? `0${n}` : n);
 const fmt = (s) => (isNaN(s) ? '0:00' : `${Math.floor(s / 60)}:${pad(Math.floor(s % 60))}`);
+const BAR_COUNT = 24;
 
 export default function CustomAudioPlayer({ src, title = '' }) {
   const { t } = useLanguage();
@@ -15,6 +16,47 @@ export default function CustomAudioPlayer({ src, title = '' }) {
   const [progress, setProgress] = useState(0);
   const [current, setCurrent] = useState('0:00');
   const [duration, setDuration] = useState('0:00');
+  const [bars, setBars] = useState(() => new Array(BAR_COUNT).fill(4));
+  const analyserRef = useRef(null);
+  const animRef = useRef(null);
+  const ctxRef = useRef(null);
+
+  const initAnalyser = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || analyserRef.current) return;
+    try {
+      const ctx = ctxRef.current || new (window.AudioContext || window.webkitAudioContext)();
+      ctxRef.current = ctx;
+      const source = ctx.createMediaElementSource(audio);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 64;
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+      analyserRef.current = analyser;
+    } catch { /* ignore if already connected */ }
+  }, []);
+
+  useEffect(() => {
+    if (!playing || !analyserRef.current) {
+      cancelAnimationFrame(animRef.current);
+      if (!playing) setBars(new Array(BAR_COUNT).fill(4));
+      return;
+    }
+    const analyser = analyserRef.current;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    const tick = () => {
+      analyser.getByteFrequencyData(data);
+      const step = Math.max(1, Math.floor(data.length / BAR_COUNT));
+      const next = Array.from({ length: BAR_COUNT }, (_, i) => {
+        const val = data[i * step] || 0;
+        return Math.max(4, (val / 255) * 32);
+      });
+      setBars(next);
+      animRef.current = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(animRef.current);
+  }, [playing]);
 
   const raw = String(src || '').trim();
   const url = /^https?:\/\//i.test(raw)
@@ -39,11 +81,18 @@ export default function CustomAudioPlayer({ src, title = '' }) {
       return;
     }
     document.querySelectorAll('audio').forEach((el) => el !== audio && el.pause());
+    initAnalyser();
+    if (ctxRef.current?.state === 'suspended') ctxRef.current.resume();
     audio.play().then(() => setPlayState(true)).catch(() => {});
   };
 
   return (
     <div className="custom-player">
+      <div className="visualizer-bars" aria-hidden="true">
+        {bars.map((h, i) => (
+          <div key={i} className="viz-bar" style={{ height: h }} />
+        ))}
+      </div>
       <audio
         ref={audioRef}
         src={url}

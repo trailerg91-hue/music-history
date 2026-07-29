@@ -175,6 +175,25 @@
   letter-spacing: 0.04em;
 }
 
+.shareBtn {
+  align-self: flex-start;
+  margin-top: 8px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: transparent;
+  color: #f59e0b;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.shareBtn:hover {
+  background: rgba(245, 158, 11, 0.12);
+}
+
 .playerCol {
   min-width: 0;
 }
