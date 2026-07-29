@@ -43,9 +43,9 @@
   left: 0.3em;
   bottom: 0.3em;
   background: linear-gradient(180deg, #fff6bf, #facc15);
-  transform: rotate(360deg) translateX(0);
+  transform: rotate(540deg) translateX(0);
   transition:
-    transform 1.9s cubic-bezier(0.19, 1, 0.22, 1),
+    transform 2.2s cubic-bezier(0.19, 1, 0.22, 1),
     background 1.68s cubic-bezier(0.19, 1, 0.22, 1),
     box-shadow 1.68s cubic-bezier(0.19, 1, 0.22, 1);
   box-shadow:
