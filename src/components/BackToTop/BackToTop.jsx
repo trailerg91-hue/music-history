@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 export default function BackToTop() {
   const [visible, setVisible] = useState(false);
+  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 400);
@@ -18,8 +19,8 @@ export default function BackToTop() {
       aria-label="Back to top"
       style={{
         position: 'fixed',
-        bottom: 90,
-        right: 24,
+        bottom: isMobile ? 'calc(104px + env(safe-area-inset-bottom, 0px))' : 90,
+        right: isMobile ? 16 : 24,
         zIndex: 900,
         width: 48,
         height: 48,

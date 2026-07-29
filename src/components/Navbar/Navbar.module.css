@@ -343,6 +343,13 @@
   overflow-y: auto;
 }
 
+.drawerControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .drawerMenu {
   display: flex;
   flex-direction: column;
@@ -493,5 +500,14 @@
   .logo {
     font-size: 0.82rem;
     letter-spacing: 0.1em;
+  }
+
+  .drawerControls {
+    gap: 10px;
+  }
+
+  .drawerLang {
+    flex: 1 1 auto;
+    justify-content: flex-end;
   }
 }

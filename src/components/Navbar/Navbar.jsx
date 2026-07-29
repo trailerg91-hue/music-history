@@ -151,7 +151,10 @@ export default function Navbar({ currentPage, setCurrentPage, user, handleLogout
             </div>
           </div>
           <div className={styles.drawerContent}>
-            <LanguageSwitch drawer />
+            <div className={styles.drawerControls}>
+              <ThemeToggle style={{ flexShrink: 0 }} />
+              <LanguageSwitch drawer />
+            </div>
             <ul className={styles.drawerMenu}>
               {links.map(({ label, type, refKey }) => (
                 <li key={type}>
