@@ -1,8 +1,8 @@
 .footer {
   width: 100%;
   background-color: var(--bg-secondary);
-  border-top: 1px solid var(--border-subtle);
-  padding: 35px 20px;
+  border-top: none;
+  padding: 48px 20px 35px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -12,6 +12,21 @@
   margin-top: auto;
   position: relative;
   z-index: 10;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--bg-secondary) 70%, transparent),
+    transparent
+  );
 }
 
 .info {

@@ -13,7 +13,12 @@ import BackToTop from '../components/BackToTop/BackToTop.jsx';
 import { useLanguage } from '../i18n/LanguageContext.jsx';
 import styles from '../App.module.css';
 
-const fadeIn = { initial: { opacity: 0 }, whileInView: { opacity: 1 }, viewport: { once: false } };
+const fadeIn = {
+  initial: { opacity: 0.35, y: 28 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.12, margin: '0px 0px -8% 0px' },
+  transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] },
+};
 
 function useParallax() {
   const [offset, setOffset] = useState(0);
@@ -86,9 +91,15 @@ export default function MainPage({ user, currentPage, setCurrentPage, selectedRe
           <motion.p className={styles.subtitle} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.8, duration: 0.6 }}>{t.main.heroSubtitle}</motion.p>
         </div>
       </div>
-      <div ref={folkRef} className={styles.sectionAnchor}><GeorgianFolk onSelectRegion={setSelectedRegion} /></div>
-      <motion.div ref={instrumentsRef} className={styles.section} {...fadeIn}><Instruments /></motion.div>
-      <motion.div ref={epochRef} className={styles.section} {...fadeIn}><Timeline data={historyData} /></motion.div>
+      <motion.div ref={folkRef} className={styles.sectionAnchor} {...fadeIn}>
+        <GeorgianFolk onSelectRegion={setSelectedRegion} />
+      </motion.div>
+      <motion.div ref={instrumentsRef} className={`${styles.section} ${styles.sectionBare}`} {...fadeIn}>
+        <Instruments />
+      </motion.div>
+      <motion.div ref={epochRef} className={`${styles.section} ${styles.sectionBare}`} {...fadeIn}>
+        <Timeline data={historyData} />
+      </motion.div>
       <Footer />
       <MobileMiniPlayer />
       <BackToTop />

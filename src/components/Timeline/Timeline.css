@@ -1,8 +1,465 @@
+.timeline-section {
+  --era-glow: rgba(234, 179, 8, 0.34);
+  --era-glow-mid: rgba(202, 168, 70, 0.22);
+  --era-glow-deep: rgba(146, 112, 40, 0.2);
+  --era-line: #eab308;
+  --era-line-soft: rgba(250, 204, 21, 0.55);
+  --era-sweep: rgba(250, 204, 21, 0.14);
+  position: relative;
+  width: 100%;
+  padding: 96px 20px 88px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 75% 48% at 18% 18%, var(--era-glow), transparent 58%),
+    radial-gradient(ellipse 60% 42% at 82% 72%, var(--era-glow-deep), transparent 56%),
+    radial-gradient(ellipse 90% 55% at 50% 48%, rgba(40, 28, 12, 0.4), transparent 70%),
+    var(--bg-secondary);
+  transition:
+    background 1.25s ease,
+    --era-glow 1.25s ease,
+    --era-glow-mid 1.25s ease,
+    --era-glow-deep 1.25s ease,
+    --era-line 1.25s ease,
+    --era-line-soft 1.25s ease,
+    --era-sweep 1.25s ease;
+}
+
+.timeline-section[data-era='ancient'] {
+  --era-glow: rgba(234, 179, 8, 0.36);
+  --era-glow-mid: rgba(212, 175, 55, 0.24);
+  --era-glow-deep: rgba(161, 128, 48, 0.22);
+  --era-line: #eab308;
+  --era-line-soft: rgba(250, 204, 21, 0.58);
+  --era-sweep: rgba(250, 204, 21, 0.16);
+}
+
+.timeline-section[data-era='medieval'] {
+  --era-glow: rgba(217, 119, 6, 0.38);
+  --era-glow-mid: rgba(180, 83, 9, 0.28);
+  --era-glow-deep: rgba(127, 29, 29, 0.24);
+  --era-line: #ea580c;
+  --era-line-soft: rgba(249, 115, 22, 0.52);
+  --era-sweep: rgba(234, 88, 12, 0.15);
+}
+
+.timeline-section[data-era='modern'] {
+  --era-glow: rgba(251, 191, 36, 0.32);
+  --era-glow-mid: rgba(253, 224, 71, 0.18);
+  --era-glow-deep: rgba(148, 163, 184, 0.16);
+  --era-line: #fde68a;
+  --era-line-soft: rgba(253, 230, 138, 0.5);
+  --era-sweep: rgba(226, 232, 240, 0.1);
+}
+
+.timeline-section::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 96px;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(
+    to bottom,
+    var(--bg-secondary) 0%,
+    color-mix(in srgb, var(--bg-secondary) 40%, transparent) 50%,
+    transparent 100%
+  );
+}
+
+.timeline-section::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100px;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--bg-secondary) 55%, transparent) 50%,
+    var(--bg-secondary) 100%
+  );
+}
+
+.timeline-atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.timeline-aura {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(44px);
+  opacity: 0.8;
+  will-change: transform, background;
+  transition: background 1.25s ease, opacity 0.8s ease;
+}
+
+.timeline-aura-a {
+  width: 48vw;
+  height: 48vw;
+  max-width: 520px;
+  max-height: 520px;
+  left: -10%;
+  top: 6%;
+  background: radial-gradient(circle, var(--era-glow), transparent 68%);
+  animation: timelineAuraA 20s ease-in-out infinite;
+}
+
+.timeline-aura-b {
+  width: 38vw;
+  height: 38vw;
+  max-width: 440px;
+  max-height: 440px;
+  right: -8%;
+  bottom: 8%;
+  background: radial-gradient(circle, var(--era-glow-deep), transparent 68%);
+  animation: timelineAuraB 24s ease-in-out infinite;
+}
+
+.timeline-aura-c {
+  width: 30vw;
+  height: 30vw;
+  max-width: 340px;
+  max-height: 340px;
+  left: 40%;
+  top: 40%;
+  background: radial-gradient(circle, var(--era-glow-mid), transparent 70%);
+  animation: timelineAuraC 28s ease-in-out infinite;
+}
+
+@keyframes timelineAuraA {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(5%, 4%, 0) scale(1.1);
+  }
+}
+
+@keyframes timelineAuraB {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  50% {
+    transform: translate3d(-5%, -3%, 0) scale(1);
+  }
+}
+
+@keyframes timelineAuraC {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(3%, -5%, 0);
+  }
+}
+
+.timeline-chrono-sweep {
+  position: absolute;
+  top: 8%;
+  bottom: 12%;
+  width: 28%;
+  left: -30%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--era-sweep) 45%,
+    transparent 100%
+  );
+  filter: blur(18px);
+  animation: timelineSweep 16s ease-in-out infinite;
+  transition: background 1.25s ease;
+}
+
+@keyframes timelineSweep {
+  0% {
+    transform: translateX(0);
+    opacity: 0.35;
+  }
+  45% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(420%);
+    opacity: 0.25;
+  }
+}
+
+.timeline-chronolines {
+  position: absolute;
+  inset: 6% 0 10%;
+  width: 100%;
+  height: 84%;
+  opacity: 0.9;
+}
+
+.chronoLine {
+  stroke: var(--era-line);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 1.25s ease;
+  filter: drop-shadow(0 0 5px var(--era-line-soft));
+}
+
+.chronoLine.line-1 {
+  stroke-opacity: 0.42;
+  animation: chronoPulse 9s ease-in-out infinite;
+}
+
+.chronoLine.line-2 {
+  stroke-opacity: 0.34;
+  animation: chronoPulse 11s ease-in-out infinite 0.35s;
+}
+
+.chronoLine.line-3 {
+  stroke-opacity: 0.48;
+  stroke-width: 1.7;
+  animation: chronoPulse 8s ease-in-out infinite 0.15s;
+}
+
+.chronoLine.line-4 {
+  stroke-opacity: 0.3;
+  animation: chronoPulse 12s ease-in-out infinite 0.55s;
+}
+
+.chronoLine.line-5 {
+  stroke-opacity: 0.22;
+  animation: chronoPulse 14s ease-in-out infinite 0.8s;
+}
+
+@keyframes chronoPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.chronoDrift {
+  fill: none;
+  stroke: var(--era-line);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  transition: stroke 1.25s ease;
+  filter: drop-shadow(0 0 6px var(--era-line-soft));
+}
+
+.chronoDrift.drift-1 {
+  stroke-opacity: 0.38;
+  animation: chronoDriftY 10s ease-in-out infinite;
+}
+
+.chronoDrift.drift-2 {
+  stroke-opacity: 0.3;
+  stroke-width: 1.3;
+  animation: chronoDriftY 13s ease-in-out infinite 0.4s;
+}
+
+.chronoDrift.drift-3 {
+  stroke-opacity: 0.24;
+  stroke-width: 1.15;
+  animation: chronoDriftY 16s ease-in-out infinite 0.7s;
+}
+
+@keyframes chronoDriftY {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-10px);
+    opacity: 0.95;
+  }
+}
+
+.timeline-atmosphere.is-lively .timeline-aura-a,
+.timeline-atmosphere.is-lively .timeline-aura-b {
+  opacity: 0.98;
+}
+
+.timeline-atmosphere.is-lively .chronoLine,
+.timeline-atmosphere.is-lively .chronoDrift {
+  filter: drop-shadow(0 0 10px var(--era-line-soft));
+}
+
+.timeline-atmosphere.is-lively .timeline-chrono-sweep {
+  animation-duration: 11s;
+}
+
+/* country landmark ambient — rises when a country is opened */
+.country-landmark-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.country-landmark {
+  position: absolute;
+  inset: 0;
+}
+
+.country-landmark-photo {
+  position: absolute;
+  inset: -4% 0 0;
+  background-size: cover;
+  background-position: center 40%;
+  background-repeat: no-repeat;
+  filter: saturate(1.05) contrast(1.1) brightness(0.78);
+  opacity: 0.78;
+  mask-image: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.85) 40%,
+    rgba(0, 0, 0, 0.4) 68%,
+    transparent 95%
+  );
+  -webkit-mask-image: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.85) 40%,
+    rgba(0, 0, 0, 0.4) 68%,
+    transparent 95%
+  );
+}
+
+.country-landmark-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(
+      to top,
+      color-mix(in srgb, var(--bg-secondary) 55%, transparent) 0%,
+      color-mix(in srgb, var(--bg-secondary) 18%, transparent) 38%,
+      transparent 70%
+    ),
+    radial-gradient(ellipse 70% 45% at 50% 100%, rgba(0, 0, 0, 0.28), transparent 68%);
+}
+
+.country-landmark--egypt .country-landmark-photo {
+  background-position: center 45%;
+}
+
+.country-landmark--greece .country-landmark-photo {
+  background-position: center 55%;
+}
+
+.country-landmark--georgia .country-landmark-photo {
+  background-position: center 35%;
+}
+
+.country-landmark--france .country-landmark-photo {
+  background-position: center 30%;
+}
+
+.country-landmark--usa .country-landmark-photo {
+  background-position: center 40%;
+}
+
+.country-landmark--japan .country-landmark-photo {
+  background-position: center 35%;
+}
+
+.country-landmark-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  height: 48px;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bg-secondary) 70%, transparent) 0%,
+    transparent 100%
+  );
+}
+
+.timeline-section.has-country .timeline-chronolines {
+  opacity: 0.28;
+  transition: opacity 0.7s ease;
+}
+
+.timeline-section.has-country .timeline-chrono-sweep {
+  opacity: 0.3;
+}
+
+.timeline-section.has-country .timeline-aura {
+  opacity: 0.42;
+}
+
+.timeline-section.has-country::after {
+  height: 56px;
+  opacity: 0.65;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-aura-a,
+  .timeline-aura-b,
+  .timeline-aura-c,
+  .timeline-chrono-sweep,
+  .chronoLine,
+  .chronoDrift {
+    animation: none;
+  }
+}
+
+:root[data-theme='light'] .country-landmark-photo {
+  opacity: 0.55;
+  filter: saturate(0.95) contrast(1.05) brightness(1.02);
+}
+
+:root[data-theme='light'] .detail-panel,
+:root[data-theme='light'] .timeline-section.has-country .detail-panel {
+  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  border-color: rgba(180, 83, 9, 0.28);
+}
+
+:root[data-theme='light'] .timeline-section {
+  background:
+    radial-gradient(ellipse 75% 48% at 18% 18%, color-mix(in srgb, var(--era-glow) 70%, transparent), transparent 58%),
+    radial-gradient(ellipse 60% 42% at 82% 72%, color-mix(in srgb, var(--era-glow-deep) 65%, transparent), transparent 56%),
+    var(--bg-secondary);
+}
+
+:root[data-theme='light'] .chronoLine,
+:root[data-theme='light'] .chronoDrift {
+  stroke: #b45309;
+}
+
+:root[data-theme='light'] .timeline-section[data-era='medieval'] .chronoLine,
+:root[data-theme='light'] .timeline-section[data-era='medieval'] .chronoDrift {
+  stroke: #9a3412;
+}
+
+:root[data-theme='light'] .timeline-section[data-era='modern'] .chronoLine,
+:root[data-theme='light'] .timeline-section[data-era='modern'] .chronoDrift {
+  stroke: #a16207;
+}
+
 .timeline-container {
   position: relative;
+  z-index: 2;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 8px 20px 40px;
+  padding: 8px 0 40px;
   font-family: 'Fira GO', sans-serif;
   color: var(--text-primary);
 }
@@ -388,11 +845,20 @@
 }
 
 .detail-panel {
-  background: var(--bg-secondary);
+  background: color-mix(in srgb, var(--bg-secondary) 62%, transparent);
+  backdrop-filter: blur(22px) saturate(1.15);
+  -webkit-backdrop-filter: blur(22px) saturate(1.15);
   border-radius: 22px;
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  border: 1px solid rgba(245, 158, 11, 0.32);
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(245, 158, 11, 0.08);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    0 0 40px rgba(245, 158, 11, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.timeline-section.has-country .detail-panel {
+  background: color-mix(in srgb, var(--bg-secondary) 52%, transparent);
 }
 
 .detail-hero {
@@ -400,7 +866,7 @@
   width: 100%;
   height: clamp(220px, 36vh, 340px);
   overflow: hidden;
-  background: var(--bg-card);
+  background: color-mix(in srgb, var(--bg-card) 70%, transparent);
 }
 
 .detail-hero-img {
@@ -421,9 +887,9 @@
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(14, 14, 14, 0.98) 0%,
-    rgba(14, 14, 14, 0.55) 42%,
-    rgba(14, 14, 14, 0.15) 70%,
+    color-mix(in srgb, var(--bg-secondary) 92%, transparent) 0%,
+    color-mix(in srgb, var(--bg-secondary) 45%, transparent) 42%,
+    color-mix(in srgb, var(--bg-secondary) 12%, transparent) 70%,
     transparent 100%
   );
   pointer-events: none;
@@ -532,8 +998,10 @@
   padding: 20px;
   border-radius: 16px;
   border: 1px solid rgba(245, 158, 11, 0.28);
-  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  background: color-mix(in srgb, var(--bg-elevated) 55%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
 }
 
 .detail-player-label {
@@ -552,7 +1020,9 @@
   border-radius: 16px;
   border: 1px dashed rgba(245, 158, 11, 0.35);
   color: var(--text-muted);
-  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 48%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   font-size: 0.95rem;
   text-align: center;
   padding: 24px;
@@ -574,7 +1044,11 @@
   }
 
   .timeline-container {
-    padding: 4px 12px 48px;
+    padding: 4px 0 48px;
+  }
+
+  .timeline-section {
+    padding: 72px 12px 64px;
   }
 
   .era-tab-btn {

@@ -3,13 +3,50 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CustomAudioPlayer from '../CustomAudioPlayer/CustomAudioPlayer.jsx';
 import { useLanguage } from '../../i18n/LanguageContext.jsx';
 import { pickLocalized } from '../../i18n/localize.js';
+import CountryLandmarkAmbient, { resolveCountryKey } from './CountryLandmarkAmbient.jsx';
 import './Timeline.css';
 
-const IMG = { greece: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Akropolis_by_Leo_von_Klenze.jpg', usa: 'https://aviatickets.ge/wp-content/uploads/2019/12/Overlooking-DC.jpg', japan: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAaQIwTZ65dNvrdXKiIF0cGYp1iIzv7HXtmKU9ajBhOw&s=10', georgia: 'https://cdn.tvpirveli.ge/w/2504/43/71/79/360443be686947a6b7ec1f1cbe8e77b3/shemomkvani-turizmi.png', france: 'https://api.tabula.ge/files/styles/news_thumb_lg/public/photos/2018/11/v2exl2nje6lsczqgxklf2mh1qjkhmfu-xlarge.jpeg.jpg?itok=uDTo-0jx', egypt: 'https://mariammeritamen.wordpress.com/wp-content/uploads/2014/08/ancient-egypt-pyramids-398605.jpg' };
-const aliases = [[['საბერძნეთი','ძველი საბერძნეთი','Greece'],'greece'],[['აშშ','USA'],'usa'],[['იაპონია','Japan'],'japan'],[['საქართველო','Georgia'],'georgia'],[['საფრანგეთი','France'],'france'],[['ეგვიპტე','ძველი ეგვიპტე','Egypt'],'egypt']];
+const IMG = {
+  greece: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Akropolis_by_Leo_von_Klenze.jpg',
+  usa: 'https://aviatickets.ge/wp-content/uploads/2019/12/Overlooking-DC.jpg',
+  japan: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAaQIwTZ65dNvrdXKiIF0cGYp1iIzv7HXtmKU9ajBhOw&s=10',
+  georgia: 'https://cdn.tvpirveli.ge/w/2504/43/71/79/360443be686947a6b7ec1f1cbe8e77b3/shemomkvani-turizmi.png',
+  france: 'https://api.tabula.ge/files/styles/news_thumb_lg/public/photos/2018/11/v2exl2nje6lsczqgxklf2mh1qjkhmfu-xlarge.jpeg.jpg?itok=uDTo-0jx',
+  egypt: 'https://mariammeritamen.wordpress.com/wp-content/uploads/2014/08/ancient-egypt-pyramids-398605.jpg',
+};
+const aliases = [
+  [['საბერძნეთი', 'ძველი საბერძნეთი', 'Greece'], 'greece'],
+  [['აშშ', 'USA'], 'usa'],
+  [['იაპონია', 'Japan'], 'japan'],
+  [['საქართველო', 'Georgia'], 'georgia'],
+  [['საფრანგეთი', 'France'], 'france'],
+  [['ეგვიპტე', 'ძველი ეგვიპტე', 'Egypt'], 'egypt'],
+];
 const fallbackImages = Object.fromEntries(aliases.flatMap(([names, key]) => names.map((n) => [n, IMG[key]])));
 const eraOrder = { ancient: 1, medieval: 2, modern: 3 };
+const knownEras = new Set(['ancient', 'medieval', 'modern']);
 const idOf = (item, i) => item.id || item._id || i;
+
+function TimelineAtmosphere({ era, lively }) {
+  return (
+    <div className={`timeline-atmosphere era-${era} ${lively ? 'is-lively' : ''}`} aria-hidden="true">
+      <div className="timeline-aura timeline-aura-a" />
+      <div className="timeline-aura timeline-aura-b" />
+      <div className="timeline-aura timeline-aura-c" />
+      <div className="timeline-chrono-sweep" />
+      <svg className="timeline-chronolines" viewBox="0 0 1200 800" preserveAspectRatio="none">
+        <line className="chrono chrono chrono-1" x1="0" y1="160" x2="1200" y2="160" />
+        <line className="chrono chrono chrono-2" x1="0" y1="280" x2="1200" y2="280" />
+        <line className="chronoLine chrono-3" x1="0" y1="400" x2="1200" y2="400" />
+        <line className="chronoLine chrono-4" x1="0" y1="520" x2="1200" y2="520" />
+        <line className="chronoLine chrono-5" x1="0" y1="640" x2="1200" y2="640" />
+        <path className="chronoDrift drift-1" d="M0,200 C200,180 400,220 600,200 C800,180 1000,220 1200,200" />
+        <path className="chronoDrift drift-2" d="M0,360 C220,340 440,380 660,360 C880,340 1060,380 1200,360" />
+        <path className="chronoDrift drift-3" d="M0,540 C180,520 420,560 640,540 C860,520 1040,560 1200,540" />
+      </svg>
+    </div>
+  );
+}
 
 export default function Timeline({ data }) {
   const { t, lang } = useLanguage();
@@ -28,13 +65,238 @@ export default function Timeline({ data }) {
   }, [data]);
 
   const currentEra = sorted.find((item, i) => idOf(item, i) === activeEraId) || sorted[0];
+  const eraKey = knownEras.has(currentEra?.id) ? currentEra.id : 'ancient';
   const text = (v) => pickLocalized(v, lang);
-  const countryImg = (c) => c.image || c.img || c.imageUrl || fallbackImages[text(c.name) || text(c.title)] || fallbackImages[c.name] || fallbackImages[c.title];
-  const selectEra = (eraId) => { setActiveEraId(eraId); setSelectedCountry(null); setActiveSection('celebration'); };
-  const openCountry = (country) => { setSelectedCountry(country); const keys = Object.keys(country.sections || {}); setActiveSection(keys.includes('celebration') ? 'celebration' : keys[0] || 'celebration'); };
+  const countryImg = (c) =>
+    c.image ||
+    c.img ||
+    c.imageUrl ||
+    fallbackImages[text(c.name) || text(c.title)] ||
+    fallbackImages[c.name] ||
+    fallbackImages[c.title];
+  const selectEra = (eraId) => {
+    setActiveEraId(eraId);
+    setSelectedCountry(null);
+    setActiveSection('celebration');
+  };
+  const openCountry = (country) => {
+    setSelectedCountry(country);
+    const keys = Object.keys(country.sections || {});
+    setActiveSection(keys.includes('celebration') ? 'celebration' : keys[0] || 'celebration');
+  };
 
   const activeIndex = sorted.findIndex((era, i) => idOf(era, i) === activeEraId);
   const progressWidth = sorted.length > 1 ? `${(activeIndex / (sorted.length - 1)) * 100}%` : '0%';
+  const lively = Boolean(selectedCountry);
+  const countryKey = resolveCountryKey(selectedCountry);
 
-  return <div className="timeline-container"><div className="timeline-hero"><h2 className="timeline-title">{t.timeline.title}</h2><p className="timeline-subtitle">{t.timeline.subtitle}</p><p className="timeline-hint"><span className="timeline-hint-dot" aria-hidden="true" />{t.timeline.hint}</p></div>{sorted.length > 0 && <div className="timeline-bar"><div className="timeline-bar-line" /><div className="timeline-bar-progress" style={{ width: progressWidth }} /><div className="timeline-bar-nodes">{sorted.map((era, i) => { const eraId = idOf(era, i); const active = eraId === activeEraId; return <button key={eraId} type="button" className={`timeline-node ${active ? 'active' : ''}`} onClick={() => selectEra(eraId)}><div className="timeline-node-dot" /><span className="timeline-node-label">{text(era.era || era.title)}</span>{text(era.yearRange) ? <span className="timeline-node-years">{text(era.yearRange)}</span> : null}</button>; })}</div></div>}<div className="era-tabs-wrapper" role="tablist" aria-label={t.timeline.title}>{sorted.map((era, i) => { const eraId = idOf(era, i); const active = eraId === activeEraId; return <button key={eraId} type="button" role="tab" aria-selected={active} className={`era-tab-btn ${active ? 'active' : ''}`} onClick={() => selectEra(eraId)}><span className="tab-title">{text(era.era || era.title)}</span>{text(era.yearRange) ? <span className="tab-years">{text(era.yearRange)}</span> : null}</button>; })}</div><AnimatePresence mode="wait">{!selectedCountry && currentEra && <motion.div key={`overview-${activeEraId}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}><div className="era-label-row"><span className="era-label">{text(currentEra.era)}</span>{text(currentEra.yearRange) ? <span className="era-label-years">{text(currentEra.yearRange)}</span> : null}</div><div className="comparison-grid">{currentEra.countries?.map((country, i) => { const img = countryImg(country); const name = text(country.name || country.title); return <motion.div key={country._id || country.id || i} className="comparison-card" role="button" tabIndex={0} onClick={() => openCountry(country)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCountry(country); } }} whileHover={{ y: -6 }} transition={{ duration: 0.35, ease: [0.14, 0.82, 0.32, 1] }}><div className="comparison-img-wrapper">{img ? <img src={img} alt="" className="comparison-img" /> : <div className="comparison-img-fallback" />}<div className="img-overlay" /><div className="comparison-card-meta"><h3>{name}</h3>{text(country.summary) ? <p className="comparison-tag">{text(country.summary)}</p> : null}</div></div></motion.div>; })}</div></motion.div>}{selectedCountry && (() => { const detailImg = countryImg(selectedCountry); const name = text(selectedCountry.name || selectedCountry.title); const sections = selectedCountry.sections || {}; const sectionKeys = Object.keys(sections); const sec = sections[activeSection] || {}; const audioSrc = sec.audio || ''; return <motion.div key={`detail-${selectedCountry.id || name}`} className="timeline-detail" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.4 }}><button type="button" className="back-to-comparison-btn" onClick={() => setSelectedCountry(null)}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg><span>{t.timeline.back}</span></button><div className="detail-panel"><div className="detail-hero">{detailImg ? <img src={detailImg} alt={name} className="detail-hero-img" /> : <div className="detail-hero-fallback" />}<div className="detail-hero-gradient" /><div className="detail-hero-text">{text(currentEra?.era) ? <span className="detail-era-chip">{text(currentEra?.era)}</span> : null}<h3 className="detail-country-title">{name}</h3></div></div><div className="detail-body"><div className="detail-copy">{text(selectedCountry.summary) ? <p className="detail-summary">{text(selectedCountry.summary)}</p> : null}<div className="section-chips" role="tablist" aria-label={t.timeline.title}>{sectionKeys.map((key) => <button key={key} type="button" role="tab" aria-selected={activeSection === key} className={`section-chip ${activeSection === key ? 'active' : ''}`} onClick={() => setActiveSection(key)}>{sectionTitles[key] || key}</button>)}</div><AnimatePresence mode="wait"><motion.p key={activeSection} className="detail-section-text" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>{text(sec.text) || t.timeline.descriptionSoon}</motion.p></AnimatePresence></div><div className="detail-player-col">{audioSrc ? <div className="detail-player-panel"><p className="detail-player-label">{`${sectionTitles[activeSection] || activeSection} · ${t.common.listen}`}</p><CustomAudioPlayer key={`${activeSection}-${audioSrc}`} src={audioSrc} title={`${name} · ${sectionTitles[activeSection] || activeSection}`} /></div> : <div className="detail-player-empty"><span className="detail-player-empty-icon">♪</span><p>{t.common.soonAudio}</p></div>}</div></div></div></motion.div>; })()}</AnimatePresence></div>;
+  return (
+    <div
+      className={`timeline-section ${countryKey ? 'has-country' : ''}`}
+      data-era={eraKey}
+      data-country={countryKey || undefined}
+    >
+      <TimelineAtmosphere era={eraKey} lively={lively} />
+      <CountryLandmarkAmbient countryKey={countryKey} />
+      <div className="timeline-container">
+        <div className="timeline-hero">
+          <h2 className="timeline-title">{t.timeline.title}</h2>
+          <p className="timeline-subtitle">{t.timeline.subtitle}</p>
+          <p className="timeline-hint">
+            <span className="timeline-hint-dot" aria-hidden="true" />
+            {t.timeline.hint}
+          </p>
+        </div>
+
+        {sorted.length > 0 && (
+          <div className="timeline-bar">
+            <div className="timeline-bar-line" />
+            <div className="timeline-bar-progress" style={{ width: progressWidth }} />
+            <div className="timeline-bar-nodes">
+              {sorted.map((era, i) => {
+                const eraId = idOf(era, i);
+                const active = eraId === activeEraId;
+                return (
+                  <button
+                    key={eraId}
+                    type="button"
+                    className={`timeline-node ${active ? 'active' : ''}`}
+                    onClick={() => selectEra(eraId)}
+                  >
+                    <div className="timeline-node-dot" />
+                    <span className="timeline-node-label">{text(era.era || era.title)}</span>
+                    {text(era.yearRange) ? <span className="timeline-node-years">{text(era.yearRange)}</span> : null}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="era-tabs-wrapper" role="tablist" aria-label={t.timeline.title}>
+          {sorted.map((era, i) => {
+            const eraId = idOf(era, i);
+            const active = eraId === activeEraId;
+            return (
+              <button
+                key={eraId}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                className={`era-tab-btn ${active ? 'active' : ''}`}
+                onClick={() => selectEra(eraId)}
+              >
+                <span className="tab-title">{text(era.era || era.title)}</span>
+                {text(era.yearRange) ? <span className="tab-years">{text(era.yearRange)}</span> : null}
+              </button>
+            );
+          })}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {!selectedCountry && currentEra && (
+            <motion.div
+              key={`overview-${activeEraId}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="era-label-row">
+                <span className="era-label">{text(currentEra.era)}</span>
+                {text(currentEra.yearRange) ? (
+                  <span className="era-label-years">{text(currentEra.yearRange)}</span>
+                ) : null}
+              </div>
+              <div className="comparison-grid">
+                {currentEra.countries?.map((country, i) => {
+                  const img = countryImg(country);
+                  const name = text(country.name || country.title);
+                  return (
+                    <motion.div
+                      key={country._id || country.id || i}
+                      className="comparison-card"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openCountry(country)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openCountry(country);
+                        }
+                      }}
+                      whileHover={{ y: -6 }}
+                      transition={{ duration: 0.35, ease: [0.14, 0.82, 0.32, 1] }}
+                    >
+                      <div className="comparison-img-wrapper">
+                        {img ? <img src={img} alt="" className="comparison-img" /> : <div className="comparison-img-fallback" />}
+                        <div className="img-overlay" />
+                        <div className="comparison-card-meta">
+                          <h3>{name}</h3>
+                          {text(country.summary) ? <p className="comparison-tag">{text(country.summary)}</p> : null}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {selectedCountry &&
+            (() => {
+              const detailImg = countryImg(selectedCountry);
+              const name = text(selectedCountry.name || selectedCountry.title);
+              const sections = selectedCountry.sections || {};
+              const sectionKeys = Object.keys(sections);
+              const sec = sections[activeSection] || {};
+              const audioSrc = sec.audio || '';
+              return (
+                <motion.div
+                  key={`detail-${selectedCountry.id || name}`}
+                  className="timeline-detail"
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <button type="button" className="back-to-comparison-btn" onClick={() => setSelectedCountry(null)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    <span>{t.timeline.back}</span>
+                  </button>
+                  <div className="detail-panel">
+                    <div className="detail-hero">
+                      {detailImg ? (
+                        <img src={detailImg} alt={name} className="detail-hero-img" />
+                      ) : (
+                        <div className="detail-hero-fallback" />
+                      )}
+                      <div className="detail-hero-gradient" />
+                      <div className="detail-hero-text">
+                        {text(currentEra?.era) ? <span className="detail-era-chip">{text(currentEra?.era)}</span> : null}
+                        <h3 className="detail-country-title">{name}</h3>
+                      </div>
+                    </div>
+                    <div className="detail-body">
+                      <div className="detail-copy">
+                        {text(selectedCountry.summary) ? (
+                          <p className="detail-summary">{text(selectedCountry.summary)}</p>
+                        ) : null}
+                        <div className="section-chips" role="tablist" aria-label={t.timeline.title}>
+                          {sectionKeys.map((key) => (
+                            <button
+                              key={key}
+                              type="button"
+                              role="tab"
+                              aria-selected={activeSection === key}
+                              className={`section-chip ${activeSection === key ? 'active' : ''}`}
+                              onClick={() => setActiveSection(key)}
+                            >
+                              {sectionTitles[key] || key}
+                            </button>
+                          ))}
+                        </div>
+                        <AnimatePresence mode="wait">
+                          <motion.p
+                            key={activeSection}
+                            className="detail-section-text"
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.25 }}
+                          >
+                            {text(sec.text) || t.timeline.descriptionSoon}
+                          </motion.p>
+                        </AnimatePresence>
+                      </div>
+                      <div className="detail-player-col">
+                        {audioSrc ? (
+                          <div className="detail-player-panel">
+                            <p className="detail-player-label">
+                              {`${sectionTitles[activeSection] || activeSection} · ${t.common.listen}`}
+                            </p>
+                            <CustomAudioPlayer
+                              key={`${activeSection}-${audioSrc}`}
+                              src={audioSrc}
+                              title={`${name} · ${sectionTitles[activeSection] || activeSection}`}
+                            />
+                          </div>
+                        ) : (
+                          <div className="detail-player-empty">
+                            <span className="detail-player-empty-icon">♪</span>
+                            <p>{t.common.soonAudio}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })()}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
 }

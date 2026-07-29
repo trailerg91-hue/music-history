@@ -15,6 +15,29 @@ const handleCardMouse = (e) => {
 };
 const idOf = (item) => item._id || item.id || pickLocalized(item.name, 'ka');
 
+function InstrumentsAtmosphere({ lively }) {
+  return (
+    <div className={`instruments-atmosphere ${lively ? 'is-lively' : ''}`} aria-hidden="true">
+      <div className="instruments-glow instruments-glow-a" />
+      <div className="instruments-glow instruments-glow-b" />
+      <div className="instruments-glow instruments-glow-c" />
+      <svg className="instruments-rings" viewBox="0 0 800 800" preserveAspectRatio="xMidYMid slice">
+        <circle className="ring ring-1" cx="400" cy="400" r="90" />
+        <circle className="ring ring-2" cx="400" cy="400" r="150" />
+        <circle className="ring ring-3" cx="400" cy="400" r="220" />
+        <circle className="ring ring-4" cx="400" cy="400" r="300" />
+        <circle className="ring ring-5" cx="400" cy="400" r="380" />
+      </svg>
+      <svg className="instruments-strings" viewBox="0 0 1200 600" preserveAspectRatio="none">
+        <path className="string string-1" d="M0,140 C200,110 400,170 600,140 C800,110 1000,170 1200,140" />
+        <path className="string string-2" d="M0,240 C220,210 420,270 620,240 C820,210 1020,270 1200,240" />
+        <path className="string string-3" d="M0,340 C180,310 420,370 640,340 C860,310 1040,370 1200,340" />
+        <path className="string string-4" d="M0,440 C240,410 430,470 650,440 C870,410 1060,470 1200,440" />
+      </svg>
+    </div>
+  );
+}
+
 export default function Instruments() {
   const { t, lang } = useLanguage();
   const [instruments, setInstruments] = useState([]);
@@ -39,11 +62,18 @@ export default function Instruments() {
   });
   const displayed = showAll ? filtered : filtered.slice(0, 6);
   const selectedId = selected ? idOf(selected) : null;
+  const lively = Boolean(selected) || showFavoritesOnly || selectedTypes.length > 0;
 
-  if (loading) return <div className="instruments-wrapper"><div className="instruments-hero"><h2 className="instruments-section-title">{t.instruments.title}</h2><p className="instruments-subtitle">{t.instruments.subtitle}</p></div><SkeletonGrid count={6} /></div>;
-
-  return (
-    <div ref={sectionRef} className="instruments-wrapper">
+  const body = loading ? (
+    <>
+      <div className="instruments-hero">
+        <h2 className="instruments-section-title">{t.instruments.title}</h2>
+        <p className="instruments-subtitle">{t.instruments.subtitle}</p>
+      </div>
+      <SkeletonGrid count={6} />
+    </>
+  ) : (
+    <>
       <div className="instruments-hero">
         <motion.h2 className="instruments-section-title" initial={{ opacity: 0, y: -12 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }}>{t.instruments.title}</motion.h2>
         <p className="instruments-subtitle">{t.instruments.subtitle}</p>
@@ -54,9 +84,36 @@ export default function Instruments() {
         {types.map((type) => <button key={type} type="button" className={`filter-chip ${!showFavoritesOnly && selectedTypes.includes(type) ? 'active' : ''}`} onClick={() => { setShowFavoritesOnly(false); setShowAll(false); setSelectedTypes((prev) => prev.includes(type) ? prev.filter((t2) => t2 !== type) : [...prev, type]); }}>{type}</button>)}
         <button type="button" className={`filter-chip filter-chip-fav ${showFavoritesOnly ? 'active' : ''}`} disabled={!favorites.length} title={!favorites.length ? t.instruments.favoritesHint : t.instruments.favoritesOnly} onClick={() => { if (!favorites.length) return; setShowFavoritesOnly((v) => !v); setSelectedTypes([]); setShowAll(false); }}>♥ {t.instruments.favorites}</button>
       </div>
-      <div className="instruments-grid"><AnimatePresence>{filtered.length ? displayed.map((item) => { const id = idOf(item); const favorited = favorites.includes(id); return <motion.div key={id} className="instrument-card" {...cardMotion} role="button" tabIndex={0} onClick={() => setSelected(item)} onMouseMove={handleCardMouse} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(item); } }}><button type="button" className={`favorite-btn ${favorited ? 'favorited' : ''}`} onClick={(e) => { e.stopPropagation(); setFavorites((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]); }} title={favorited ? t.instruments.removeFavorite : t.instruments.addFavorite}>{favorited ? '♥' : '♡'}</button><div className="instrument-image-container">{item.imageUrl ? <img src={item.imageUrl} alt="" className="instrument-image" /> : <span className="instrument-image-fallback">♪</span>}<div className="instrument-image-shade" /></div><div className="instrument-meta">{pickLocalized(item.type, lang) ? <span className="instrument-type">{pickLocalized(item.type, lang)}</span> : null}<h3 className="instrument-name">{pickLocalized(item.name, lang)}</h3></div></motion.div>; }) : <div className="no-results">{showFavoritesOnly ? t.instruments.noFavoritesYet : t.instruments.noCategoryResults}</div>}</AnimatePresence></div>
-      {filtered.length > 6 && <div className="show-more-wrap"><motion.button type="button" whileTap={{ scale: 0.97 }} className="show-more-btn" onClick={() => { if (showAll) { setShowAll(false); sectionRef.current?.scrollIntoView({ behavior: 'smooth' }); } else setShowAll(true); }}>{showAll ? t.common.showLess : t.common.showMore}</motion.button></div>}
+      <div className="instruments-grid">
+        <AnimatePresence>
+          {filtered.length ? displayed.map((item) => {
+            const id = idOf(item);
+            const favorited = favorites.includes(id);
+            return (
+              <motion.div key={id} className="instrument-card" {...cardMotion} role="button" tabIndex={0} onClick={() => setSelected(item)} onMouseMove={handleCardMouse} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(item); } }}>
+                <button type="button" className={`favorite-btn ${favorited ? 'favorited' : ''}`} onClick={(e) => { e.stopPropagation(); setFavorites((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]); }} title={favorited ? t.instruments.removeFavorite : t.instruments.addFavorite}>{favorited ? '♥' : '♡'}</button>
+                <div className="instrument-image-container">{item.imageUrl ? <img src={item.imageUrl} alt="" className="instrument-image" /> : <span className="instrument-image-fallback">♪</span>}<div className="instrument-image-shade" /></div>
+                <div className="instrument-meta">{pickLocalized(item.type, lang) ? <span className="instrument-type">{pickLocalized(item.type, lang)}</span> : null}<h3 className="instrument-name">{pickLocalized(item.name, lang)}</h3></div>
+              </motion.div>
+            );
+          }) : <div className="no-results">{showFavoritesOnly ? t.instruments.noFavoritesYet : t.instruments.noCategoryResults}</div>}
+        </AnimatePresence>
+      </div>
+      {filtered.length > 6 && (
+        <div className="show-more-wrap">
+          <motion.button type="button" whileTap={{ scale: 0.97 }} className="show-more-btn" onClick={() => { if (showAll) { setShowAll(false); sectionRef.current?.scrollIntoView({ behavior: 'smooth' }); } else setShowAll(true); }}>
+            {showAll ? t.common.showLess : t.common.showMore}
+          </motion.button>
+        </div>
+      )}
       {selected && <InstrumentDetail instrument={selected} favorited={favorites.includes(selectedId)} onToggleFavorite={() => setFavorites((prev) => prev.includes(selectedId) ? prev.filter((x) => x !== selectedId) : [...prev, selectedId])} onClose={() => setSelected(null)} />}
+    </>
+  );
+
+  return (
+    <div ref={sectionRef} className="instruments-section">
+      <InstrumentsAtmosphere lively={lively} />
+      <div className="instruments-wrapper">{body}</div>
     </div>
   );
 }
