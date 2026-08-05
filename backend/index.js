@@ -233,7 +233,13 @@ app.get('/', (_req, res) => {
 });
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true });
+  const dbState = mongoose.connection.readyState;
+  // Always 200 so Render/load-balancers treat the process as live while Mongo connects.
+  res.json({
+    ok: true,
+    db: dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'down',
+    uptime: Math.round(process.uptime()),
+  });
 });
 
 // Browsers auto-request this when opening the API URL in a tab.

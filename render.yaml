@@ -9,7 +9,5 @@ services:
       - key: NODE_ENV
         value: production
 
-  # If the service Root Directory is empty (repo root), use these instead:
-  # buildCommand: npm run build:render
-  # startCommand: npm start
-  # (legacy) startCommand: node servers/index.js
+  # Legacy fallback if a host still points at backend/servers:
+  # startCommand: node servers/index.js

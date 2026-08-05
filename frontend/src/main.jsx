@@ -7,11 +7,10 @@ import { AudioSessionProvider } from './components/AudioSession/audioSession.jsx
 import { LanguageProvider } from './i18n/LanguageContext.jsx';
 import { ToastProvider } from './components/Toast/Toast.jsx';
 import { ThemeProvider } from './components/ThemeToggle/ThemeToggle.jsx';
-import { API_BASE } from './api.js';
+import { wakeBackend } from './api.js';
 
-// Wake Render free-tier early so later content fetches are warmer.
-const wakeUrl = `${API_BASE}/health`;
-fetch(wakeUrl, { method: 'GET', mode: 'cors', cache: 'no-store' }).catch(() => {});
+// Start waking Render as soon as the module evaluates.
+wakeBackend();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

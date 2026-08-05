@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
-import { AUTH_API } from '../../api.js';
+import { AUTH_API, wakeBackend } from '../../api.js';
 import { withLangHeader } from '../../i18n/localize.js';
 
 export const AuthContext = createContext(null);
@@ -59,11 +59,13 @@ export const AuthProvider = ({ children }) => {
     if (!token) return undefined;
 
     let cancelled = false;
-    axios
-      .get(`${AUTH_API}/me`, {
-        headers: withLangHeader({ Authorization: `Bearer ${token}` }),
-        timeout: 12000,
-      })
+    wakeBackend()
+      .then(() =>
+        axios.get(`${AUTH_API}/me`, {
+          headers: withLangHeader({ Authorization: `Bearer ${token}` }),
+          timeout: 45000,
+        })
+      )
       .then(({ data }) => {
         if (cancelled) return;
         if (data?.token) localStorage.setItem(TOKEN_KEY, data.token);

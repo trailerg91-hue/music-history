@@ -1,16 +1,55 @@
-# React + Vite
+# History of Music
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Monorepo with a Vite/React frontend and an Express/MongoDB backend.
 
-Currently, two official plugins are available:
+## Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```text
+frontend/   React + Vite app (Vercel)
+backend/    Express API (Render)
+```
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm run install:all
+```
 
-## Expanding the ESLint configuration
+Copy env files:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+cp frontend/.env.example frontend/.env
+cp backend/.env.example backend/.env
+```
+
+## Development
+
+```bash
+# frontend (http://localhost:5173)
+npm run dev
+
+# backend (http://localhost:5000)
+npm run dev:backend
+```
+
+## Production scripts
+
+```bash
+npm run build          # build frontend
+npm start              # start backend
+```
+
+## Deploy notes
+
+- **Vercel**: set Root Directory to `frontend`
+- **Render**: service Root Directory is `backend` (see `render.yaml`)
+
+### Backend cold starts (Render free tier)
+
+Render sleeps idle free services. This repo mitigates that with:
+
+1. Early `/api/health` wake from `frontend/index.html` + `wakeBackend()` in the SPA
+2. API retries while the service boots
+3. GitHub Action `.github/workflows/keep-backend-warm.yml` (cron every 10 minutes)
+
+For a permanent fix, upgrade Render to a paid always-on plan.

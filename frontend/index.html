@@ -23,6 +23,20 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Fire before the JS bundle parses — overlaps Render cold start with download. -->
+    <script>
+      (function () {
+        try {
+          var host = location.hostname;
+          if (host === 'localhost' || host === '127.0.0.1') return;
+          fetch('https://music-history-backend-6ojw.onrender.com/api/health', {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-store',
+          }).catch(function () {});
+        } catch (e) {}
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

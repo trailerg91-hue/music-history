@@ -2,7 +2,7 @@
   "name": "history-of-music-servers-legacy",
   "private": true,
   "type": "module",
-  "description": "Legacy start path — redirects to ../backend",
+  "description": "Legacy start path — redirects to ../index.js",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
